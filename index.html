@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="返掃愛校預約">
+<title>衛生組返掃與愛校預約</title>
+<style>
+:root{
+  --bg:#eeece7; --surface:#f7f6f2; --card:#fbfaf7; --raise:#ffffff;
+  --ink:#3a3f3b; --ink-2:#8b908a; --line:#e3dfd8;
+  --mint:#a9dcc3; --mint-2:#bde6d2; --mint-d:#7cc5a4; --mint-ink:#2c5c47; --mint-soft:#e4f4ec;
+  --warn:#f0d68a; --warn-ink:#7a5c10; --warn-soft:#fbf1d8;
+  --err:#e79a96; --err-ink:#8c3733; --err-soft:#fae7e5;
+  --r:20px; --r-sm:14px;
+  --up:5px 5px 12px rgba(160,152,140,.34), -5px -5px 12px rgba(255,255,255,.92);
+  --up-sm:3px 3px 7px rgba(160,152,140,.3), -3px -3px 7px rgba(255,255,255,.9);
+  --up-lg:9px 9px 22px rgba(160,152,140,.36), -8px -8px 20px rgba(255,255,255,.94);
+  --in:inset 3px 3px 7px rgba(160,152,140,.4), inset -3px -3px 7px rgba(255,255,255,.9);
+  --in-sm:inset 2px 2px 5px rgba(160,152,140,.35), inset -2px -2px 5px rgba(255,255,255,.88);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:var(--bg); color:var(--ink); font-size:17px; line-height:1.65;
+  -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent;
+}
+h1,h2,h3{line-height:1.3;margin:0 0 .45em;font-weight:800;letter-spacing:-.01em}
+h1{font-size:1.75rem} h2{font-size:1.22rem} h3{font-size:1.02rem;font-weight:700}
+.num{font-variant-numeric:tabular-nums}
+.hide{display:none !important}
+.wrap{max-width:1060px;margin:0 auto;padding:20px 16px 44px}
+.muted{color:var(--ink-2);font-size:.9rem}
+.big{font-size:1.3rem;font-weight:700}
+
+/* ---- 頂欄 ---- */
+header.top{background:var(--surface);position:sticky;top:0;z-index:40;
+  box-shadow:0 4px 16px rgba(160,152,140,.2)}
+header.top .wrap{display:flex;align-items:center;gap:12px;padding:13px 16px}
+header.top .brand{font-weight:800;font-size:1.02rem;color:var(--mint-ink)}
+header.top .who{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:.92rem;color:var(--ink-2)}
+
+/* ---- 按鈕 ---- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;
+  background:linear-gradient(150deg,var(--mint-2),var(--mint));color:var(--mint-ink);
+  padding:13px 26px;border-radius:999px;font-size:1rem;font-family:inherit;font-weight:700;
+  cursor:pointer;min-height:50px;box-shadow:var(--up);
+  transition:box-shadow .16s ease, transform .1s ease, filter .16s ease;
+}
+.btn:hover{filter:brightness(1.03);box-shadow:var(--up-lg)}
+.btn:active{box-shadow:var(--in);transform:translateY(1px)}
+.btn.ghost{background:linear-gradient(150deg,#ffffff,var(--surface));color:var(--mint-ink)}
+.btn.flat{background:linear-gradient(150deg,#ffffff,var(--surface));color:var(--ink-2);font-weight:600}
+.btn.warn{background:linear-gradient(150deg,#efb2ae,var(--err));color:var(--err-ink)}
+.btn.sm{padding:7px 16px;font-size:.85rem;min-height:36px;box-shadow:var(--up-sm)}
+.btn.sm:hover{box-shadow:var(--up)}
+.btn[disabled]{background:linear-gradient(150deg,#e8e5df,#ded9d1);color:#a9a49c;
+  box-shadow:var(--up-sm);cursor:not-allowed;filter:none;transform:none}
+:focus-visible{outline:3px solid var(--mint-d);outline-offset:3px}
+
+/* ---- 表單 ---- */
+input,select,textarea{
+  font-family:inherit;font-size:1rem;color:var(--ink);border:0;background:var(--surface);
+  padding:12px 16px;border-radius:var(--r-sm);max-width:100%;min-height:48px;box-shadow:var(--in);
+}
+input::placeholder{color:#b0b4ae}
+select{appearance:none;padding-right:38px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='%238b908a' d='M1.5 1.8L6 6.2l4.5-4.4'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:12px}
+input:focus,select:focus{outline:none;box-shadow:var(--in),0 0 0 3px rgba(124,197,164,.45)}
+input[type=checkbox]{min-height:auto;width:20px;height:20px;box-shadow:none;accent-color:var(--mint-d)}
+label.field{display:block;margin-bottom:14px;font-size:.88rem;color:var(--ink-2);font-weight:600}
+label.field span{display:block;margin-bottom:6px}
+label.field input,label.field select{width:100%}
+
+/* ---- 卡片 ---- */
+.card{background:var(--card);border-radius:var(--r);padding:22px;margin-bottom:18px;box-shadow:var(--up)}
+.card h2{margin-bottom:16px}
+.card h2+.muted{margin-top:-8px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.tag{display:inline-block;padding:3px 13px;border-radius:999px;font-size:.8rem;font-weight:700;white-space:nowrap;
+  background:var(--surface);color:var(--ink-2);box-shadow:var(--up-sm)}
+.tag.love{background:linear-gradient(150deg,#f2b7b3,var(--err));color:var(--err-ink)}
+.tag.clean{background:linear-gradient(150deg,#b9d3ee,#93bde4);color:#274c72}
+.tag.ok{background:linear-gradient(150deg,var(--mint-2),var(--mint));color:var(--mint-ink)}
+.tag.wait{background:linear-gradient(150deg,#f6e3ab,var(--warn));color:var(--warn-ink)}
+
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:.92rem}
+th,td{padding:10px 10px;text-align:left;vertical-align:middle}
+th{background:var(--surface);font-weight:700;color:var(--ink-2);font-size:.85rem;position:sticky;top:0;z-index:1}
+th:first-child{border-radius:12px 0 0 12px} th:last-child{border-radius:0 12px 12px 0}
+tbody tr td{border-bottom:1px solid var(--line)}
+tbody tr:last-child td{border-bottom:0}
+.scroll{overflow:auto;max-height:60vh;background:var(--card);border-radius:var(--r-sm);
+  padding:6px 10px;box-shadow:var(--in-sm)}
+
+.notice{padding:13px 18px;border-radius:999px;font-size:.94rem;margin-bottom:14px;font-weight:600;
+  display:flex;align-items:center;gap:10px;box-shadow:var(--up-sm)}
+.notice::before{font-size:1.05rem;line-height:1}
+.notice.info{background:linear-gradient(150deg,#d5eee1,var(--mint-soft));color:var(--mint-ink)}
+.notice.info::before{content:'✓'}
+.notice.warn{background:linear-gradient(150deg,#f8ecc9,var(--warn-soft));color:var(--warn-ink)}
+.notice.warn::before{content:'!'}
+.notice.err{background:linear-gradient(150deg,#f6dbd8,var(--err-soft));color:var(--err-ink)}
+.notice.err::before{content:'✕'}
+
+/* ---- 登入 ---- */
+.gate{max-width:470px;margin:5vh auto;padding:0 16px}
+.gate .card{padding:26px}
+.hero{text-align:center;padding-bottom:22px;margin-bottom:22px;position:relative}
+.hero::after{content:'';position:absolute;left:8%;right:8%;bottom:0;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,rgba(0,0,0,0),rgba(160,152,140,.28),rgba(0,0,0,0));
+  box-shadow:0 1px 0 rgba(255,255,255,.9)}
+.crest{width:66px;height:66px;border-radius:24px;margin:0 auto 16px;display:grid;place-items:center;
+  background:linear-gradient(150deg,var(--mint-2),var(--mint));box-shadow:var(--up);color:var(--mint-ink)}
+.crest svg{width:32px;height:32px}
+.hero h1{font-size:1.45rem;margin:0 0 12px;letter-spacing:-.02em}
+.chips{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border-radius:999px;
+  background:var(--surface);box-shadow:var(--in-sm);font-size:.85rem;font-weight:700;color:var(--ink-2)}
+.chip.time{color:var(--mint-ink)}
+.brandmark{width:32px;height:32px;border-radius:11px;display:grid;place-items:center;flex:none;
+  background:linear-gradient(150deg,var(--mint-2),var(--mint));box-shadow:var(--up-sm);color:var(--mint-ink)}
+.brandmark svg{width:17px;height:17px}
+header.top .brand{display:flex;align-items:center;gap:10px}
+.tabs{display:flex;gap:0;margin-bottom:22px;padding:5px;border-radius:999px;
+  background:var(--surface);box-shadow:var(--in)}
+.tabs button{flex:1;padding:10px;border:0;background:transparent;border-radius:999px;cursor:pointer;
+  font-family:inherit;font-size:.98rem;font-weight:700;color:var(--ink-2);min-height:42px;transition:all .16s ease}
+.tabs button.on{background:linear-gradient(150deg,var(--mint-2),var(--mint));color:var(--mint-ink);box-shadow:var(--up-sm)}
+.counter-note{margin-top:20px;padding:16px 18px;border-radius:var(--r-sm);
+  background:var(--surface);box-shadow:var(--in-sm);text-align:left}
+.counter-note div{display:flex;gap:9px;align-items:flex-start;font-size:.88rem;color:var(--ink-2);line-height:1.6}
+.counter-note div+div{margin-top:8px}
+.counter-note div::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--mint-d);
+  flex:none;margin-top:.55em}
+.counter-note b{color:var(--ink)}
+
+/* ---- 學生大按鈕 ---- */
+.bigbtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:16px;margin-bottom:18px}
+.bigbtn{border:0;border-radius:var(--r);cursor:pointer;padding:24px 20px;font-family:inherit;text-align:left;
+  color:var(--ink);min-height:104px;background:linear-gradient(150deg,var(--raise),var(--surface));
+  box-shadow:var(--up);transition:box-shadow .16s ease, transform .1s ease}
+.bigbtn:hover{box-shadow:var(--up-lg)}
+.bigbtn:active{transform:translateY(1px)}
+.bigbtn.on{background:linear-gradient(150deg,var(--mint-2),var(--mint));color:var(--mint-ink);box-shadow:var(--up-lg)}
+.bigbtn .t{font-size:1.2rem;font-weight:800;display:block;margin-bottom:3px}
+.bigbtn .s{font-size:.86rem;opacity:.75;font-weight:600}
+.bigbtn[disabled]{background:linear-gradient(150deg,#eae7e1,#e0dbd3);color:#a9a49c;
+  box-shadow:var(--up-sm);cursor:not-allowed}
+
+/* ---- 個資確認 ---- */
+.idcard{max-width:540px;margin:4vh auto;padding:0 16px}
+.idgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:20px 0}
+.idgrid div{background:var(--surface);border-radius:var(--r-sm);padding:14px 16px;box-shadow:var(--in-sm)}
+.idgrid span{display:block;font-size:.8rem;color:var(--ink-2);font-weight:600}
+.idgrid b{font-size:1.4rem;font-weight:800}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:14px}
+.stat{border-radius:var(--r-sm);padding:16px;background:linear-gradient(150deg,var(--raise),var(--surface));box-shadow:var(--up-sm)}
+.stat b{display:block;font-size:2.1rem;line-height:1.1;font-variant-numeric:tabular-nums;font-weight:800}
+.stat span{font-size:.83rem;color:var(--ink-2);font-weight:600}
+.stat.hi{background:linear-gradient(150deg,var(--mint-2),var(--mint))}
+.stat.hi b,.stat.hi span{color:var(--mint-ink)}
+
+/* ---- 憑證 ---- */
+.slip{border-radius:var(--r);padding:24px;background:linear-gradient(150deg,var(--mint-soft),#d8efe4);box-shadow:var(--up)}
+.slip .who{font-size:1.35rem;font-weight:800;margin-bottom:16px;color:var(--mint-ink)}
+.slip ol{margin:0;padding-left:24px}
+.slip li{margin-bottom:14px;font-size:1.1rem;line-height:1.5}
+.slip li b{font-size:1.2rem;font-weight:800}
+.slip .remind{margin-top:18px;padding:14px 16px;background:var(--card);border-radius:var(--r-sm);
+  font-size:.94rem;box-shadow:var(--up-sm)}
+
+/* ---- 日曆 ---- */
+.calbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+.cal .hd{text-align:center;font-size:.82rem;color:var(--ink-2);padding:4px 0;font-weight:700}
+.day{border-radius:var(--r-sm);min-height:88px;padding:7px;position:relative;overflow:hidden;
+  background:#e6e3dc;box-shadow:var(--in);color:#a8a49c}
+.day.out{opacity:.45}
+.day.open{background:linear-gradient(150deg,#ffffff,#f0f8f3);box-shadow:var(--up);color:var(--ink);cursor:pointer}
+.day.open::after{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--mint)}
+.day.open:hover{box-shadow:var(--up-lg)}
+.day.today{box-shadow:var(--in),inset 0 0 0 2px var(--mint-d)}
+.day.open.today{box-shadow:var(--up),inset 0 0 0 2px var(--mint-d)}
+.day .d{font-size:.88rem;font-weight:700}
+.day.open .d{color:var(--mint-ink)}
+.ent{display:flex;align-items:center;gap:5px;font-size:.72rem;line-height:1.55;color:var(--ink-2);font-weight:600}
+.pt{width:11px;height:11px;border-radius:50%;flex:none;
+  box-shadow:inset -1px -1px 2px rgba(0,0,0,.16), inset 1px 1px 2px rgba(255,255,255,.65)}
+.pt.love{background:var(--err)} .pt.clean{background:#93bde4}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:.85rem;color:var(--ink-2);font-weight:600}
+.legend i{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:-1px;
+  box-shadow:inset -1px -1px 2px rgba(0,0,0,.16), inset 1px 1px 2px rgba(255,255,255,.65)}
+
+/* ---- 對話框 ---- */
+dialog{border:0;border-radius:var(--r);padding:0;max-width:620px;width:calc(100% - 32px);
+  background:var(--card);box-shadow:0 24px 60px rgba(120,112,100,.4)}
+dialog::backdrop{background:rgba(58,63,59,.35);backdrop-filter:blur(3px)}
+dialog .dlg{padding:24px}
+.close{position:absolute;top:14px;right:16px;border:0;background:var(--surface);width:34px;height:34px;
+  border-radius:50%;font-size:1.15rem;cursor:pointer;color:var(--ink-2);line-height:1;box-shadow:var(--up-sm)}
+.close:active{box-shadow:var(--in-sm)}
+
+/* ---- 後台分頁 ---- */
+nav.admintabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:20px;padding:6px;border-radius:999px;
+  background:var(--surface);box-shadow:var(--in)}
+nav.admintabs button{padding:9px 17px;border:0;background:transparent;border-radius:999px;cursor:pointer;
+  font-family:inherit;font-size:.9rem;font-weight:700;color:var(--ink-2);min-height:40px;transition:all .16s ease}
+nav.admintabs button.on{background:linear-gradient(150deg,var(--mint-2),var(--mint));color:var(--mint-ink);box-shadow:var(--up-sm)}
+.mapgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:.88rem}
+@media(max-width:640px){.mapgrid{grid-template-columns:1fr}.idgrid{grid-template-columns:1fr}}
+.filelabel{display:block;border-radius:var(--r-sm);padding:30px;text-align:center;cursor:pointer;
+  color:var(--ink-2);font-weight:600;background:var(--surface);box-shadow:var(--in)}
+.filelabel:hover{color:var(--mint-ink)}
+.wdays{display:flex;gap:6px;flex-wrap:wrap}
+.wdays label{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:999px;
+  background:var(--surface);box-shadow:var(--up-sm);font-size:.86rem;font-weight:600;cursor:pointer}
+footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(--ink-2)}
+</style>
+</head>
+<body>
+
+<header class="top hide" id="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="brandmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v3M16 2v3M3.5 9.5h17"/><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="m8.6 14.6 2.3 2.3 4.5-4.9"/></svg></span>衛生組返掃與愛校預約</div>
+    <div class="who"><span id="whoText"></span><button class="btn sm flat" id="btnLogout">結束</button></div>
+  </div>
+</header>
+
+<!-- ===== 登入 ===== -->
+<section id="viewGate" class="gate">
+  <div class="card">
+    <div class="hero">
+      <div class="crest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v3M16 2v3M3.5 9.5h17"/><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="m8.6 14.6 2.3 2.3 4.5-4.9"/></svg></div>
+      <h1>衛生組返掃與愛校預約</h1>
+      <div class="chips">
+        <span class="chip">學務處</span>
+        <span class="chip time"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.3l3.3 2"/></svg>中午 12:30–13:00</span>
+      </div>
+    </div>
+    <div class="tabs">
+      <button id="tabStu" class="on">學生</button>
+      <button id="tabAdm">管理者</button>
+    </div>
+    <form id="formStu">
+      <label class="field"><span>學號</span><input id="stuSid" inputmode="numeric" autocomplete="off" placeholder="請輸入你的學號" required></label>
+      <label class="field"><span>姓名</span><input id="stuName" autocomplete="off" placeholder="請輸入本名" required></label>
+      <button class="btn" style="width:100%">下一步</button>
+    </form>
+    <form id="formAdm" class="hide">
+      <label class="field"><span>帳號</span><input id="admUser" autocomplete="username" required></label>
+      <label class="field"><span>密碼</span><input id="admPass" type="password" autocomplete="current-password" required></label>
+      <button class="btn" style="width:100%">登入後台</button>
+      <p class="muted" style="margin-bottom:0">首次使用請以 admin / admin1234 登入，登入後請立即修改密碼。</p>
+    </form>
+    <div id="gateMsg" style="margin-top:16px"></div>
+    <div class="counter-note">
+      <div><b>本系統僅限學務處櫃檯操作</b></div>
+      <div>已與老師約好時間的同學不需預約，請自行攜帶愛校單前往</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 個資確認 ===== -->
+<section id="viewConfirm" class="idcard hide">
+  <div class="card">
+    <h2>請確認這是你的資料</h2>
+    <div class="idgrid">
+      <div><span>班級</span><b id="cClass">—</b></div>
+      <div><span>座號</span><b id="cSeat">—</b></div>
+      <div><span>姓名</span><b id="cName">—</b></div>
+      <div><span>學號</span><b id="cSid" class="num">—</b></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="btnConfirmYes" style="flex:1">資料正確，繼續</button>
+      <button class="btn flat" id="btnConfirmNo">不是我</button>
+    </div>
+    <p class="muted" style="margin:14px 0 0">資料有誤請洽衛生組更正。</p>
+  </div>
+</section>
+
+<!-- ===== 學生 ===== -->
+<section id="viewStu" class="wrap hide">
+  <div class="bigbtns">
+    <button class="bigbtn" id="bigLove"><span class="t">預約愛校服務</span><span class="s">一次排 3 個時段</span></button>
+    <button class="bigbtn" id="bigClean"><span class="t">預約補打掃</span><span class="s">返校打掃未完成的次數</span></button>
+    <button class="bigbtn" id="bigMine"><span class="t">個人預約回顧</span><span class="s">查看自己約了哪些時段</span></button>
+  </div>
+
+  <div class="card hide" id="paneLove">
+    <h2>預約愛校服務</h2>
+    <div id="loveMsg"></div>
+    <p class="muted" id="loveStatus"></p>
+    <div class="row" style="align-items:flex-end">
+      <label class="field" style="min-width:210px;flex:1;margin-bottom:0"><span>日期</span><select id="loveDate"></select></label>
+      <label class="field" style="min-width:250px;flex:1.4;margin-bottom:0"><span>地點與核發老師</span><select id="lovePlace"></select></label>
+      <button class="btn" id="btnLoveBook">加入預約</button>
+    </div>
+    <div id="loveList" style="margin-top:20px"></div>
+  </div>
+
+  <div class="card hide" id="paneClean">
+    <h2>預約補打掃</h2>
+    <div id="cleanMsg"></div>
+    <div class="stats" style="margin-bottom:18px">
+      <div class="stat"><b id="pReq" class="num">0</b><span>應打掃次數</span></div>
+      <div class="stat"><b id="pDone" class="num">0</b><span>已完成</span></div>
+      <div class="stat"><b id="pPend" class="num">0</b><span>已預約</span></div>
+      <div class="stat hi"><b id="pLeft" class="num">0</b><span>尚需預約</span></div>
+    </div>
+    <div class="row" style="align-items:flex-end">
+      <label class="field" style="min-width:210px;flex:1;margin-bottom:0"><span>日期</span><select id="cleanDate"></select></label>
+      <label class="field" style="min-width:210px;flex:1;margin-bottom:0"><span>打掃地點</span><select id="cleanPlace"></select></label>
+      <button class="btn" id="btnCleanBook">加入預約</button>
+    </div>
+    <div id="cleanList" style="margin-top:20px"></div>
+  </div>
+
+  <div class="card hide" id="paneMine">
+    <h2>個人預約回顧</h2>
+    <div id="mineBody"></div>
+  </div>
+
+  <div class="card">
+    <h2>預約日曆</h2>
+    <div class="calbar">
+      <button class="btn sm flat" id="calPrev">← 上個月</button>
+      <b id="calTitle" class="num"></b>
+      <button class="btn sm flat" id="calNext">下個月 →</button>
+    </div>
+    <div class="cal" id="calGrid"></div>
+    <div class="legend">
+      <span><i style="background:#e79a96"></i>愛校服務</span>
+      <span><i style="background:#93bde4"></i>補打掃</span>
+      <span><i style="background:#e6e3dc;box-shadow:none"></i>灰色＝不開放預約</span>
+      <span>圓點旁只顯示班級，不會顯示姓名</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 管理者 ===== -->
+<section id="viewAdm" class="wrap hide">
+  <div id="backupWarn"></div>
+  <nav class="admintabs" id="admTabs">
+    <button data-t="demand" class="on">需求登記</button>
+    <button data-t="bookings">預約管理</button>
+    <button data-t="calendar">日曆與開放日</button>
+    <button data-t="import">名單匯入</button>
+    <button data-t="students">學生資料</button>
+    <button data-t="accounts">管理員</button>
+    <button data-t="data">備份與設定</button>
+  </nav>
+
+  <div id="admDemand" class="admpane">
+    <div class="card">
+      <h2>登記需求時段</h2>
+      <p class="muted">時段固定為中午 12:30–13:00。只有登記過需求、且未被停用的日期，學生才能預約。</p>
+      <div class="row" style="align-items:flex-end;margin-top:14px">
+        <label class="field" style="margin-bottom:0"><span>類別</span><select id="dType">
+          <option value="love">愛校服務</option><option value="clean">補打掃</option></select></label>
+        <label class="field" style="margin-bottom:0"><span>日期</span><input type="date" id="dDate"></label>
+        <label class="field" style="margin-bottom:0;flex:1;min-width:170px"><span>地點</span><input id="dPlace" placeholder="學務處、教務處、中庭…"></label>
+        <label class="field" style="margin-bottom:0"><span>需求人數</span><input type="number" id="dCap" value="3" min="1" style="width:118px"></label>
+        <label class="field" style="margin-bottom:0" id="wrapTeacher"><span>核發教師</span><input id="dTeacher" placeholder="姓名" style="width:135px"></label>
+        <label class="field" style="margin-bottom:0" id="wrapSubject"><span>科目</span><input id="dSubject" placeholder="國文" style="width:115px"></label>
+        <button class="btn" id="btnAddDemand">新增</button>
+      </div>
+      <h3 style="margin-top:22px">批次套用到一段期間</h3>
+      <div class="row" style="align-items:flex-end">
+        <label class="field" style="margin-bottom:0"><span>起始日</span><input type="date" id="bFrom"></label>
+        <label class="field" style="margin-bottom:0"><span>結束日</span><input type="date" id="bTo"></label>
+        <label class="field" style="margin-bottom:0;flex:1;min-width:180px"><span>地點（逗號分隔多個）</span><input id="bPlaces" placeholder="學務處, 教務處"></label>
+        <label class="field" style="margin-bottom:0"><span>每處人數</span><input type="number" id="bCap" value="3" min="1" style="width:118px"></label>
+        <button class="btn ghost" id="btnBatchDemand">批次新增</button>
+      </div>
+      <p class="muted" style="margin:14px 0 8px">批次只套用到勾選的星期：</p>
+      <div class="wdays" id="wdays"></div>
+      <div id="dMsg" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h2>已登記的需求</h2>
+      <div id="demandList"></div>
+    </div>
+  </div>
+
+  <div id="admBookings" class="admpane hide">
+    <div class="card">
+      <h2>預約管理</h2>
+      <div class="row" style="margin-bottom:16px">
+        <label class="field" style="margin-bottom:0"><span>日期</span><input type="date" id="qDate"></label>
+        <label class="field" style="margin-bottom:0"><span>類別</span><select id="qType">
+          <option value="">全部</option><option value="love">愛校服務</option><option value="clean">補打掃</option></select></label>
+        <label class="field" style="margin-bottom:0"><span>班級</span><input id="qCls" placeholder="搜尋班級" style="width:145px"></label>
+        <button class="btn sm flat" id="btnToday">只看今天</button>
+        <button class="btn sm flat" id="btnClearQ">清除條件</button>
+      </div>
+      <div id="qList"></div>
+    </div>
+  </div>
+
+  <div id="admCalendar" class="admpane hide">
+    <div class="card">
+      <h2>日曆與開放日</h2>
+      <p class="muted">點任一日期可查看名單，並開放或停用該日。已經有人預約的日期、以及已經過去的日期無法更動。</p>
+      <div class="calbar" style="margin-top:14px">
+        <button class="btn sm flat" id="acalPrev">← 上個月</button>
+        <b id="acalTitle" class="num"></b>
+        <button class="btn sm flat" id="acalNext">下個月 →</button>
+      </div>
+      <div class="cal" id="acalGrid"></div>
+      <div class="legend">
+        <span><i style="background:#e79a96"></i>愛校服務</span>
+        <span><i style="background:#93bde4"></i>補打掃</span>
+        <span><i style="background:#e6e3dc;box-shadow:none"></i>灰色＝未登記需求或已停用</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>批次停用</h2>
+      <p class="muted">段考週、校慶等連續多天停用時使用。已有預約或已過去的日期會自動略過。</p>
+      <div class="row" style="align-items:flex-end;margin-top:14px">
+        <label class="field" style="margin-bottom:0"><span>類別</span><select id="cType">
+          <option value="love">愛校服務</option><option value="clean">補打掃</option>
+          <option value="both">兩者都停用</option></select></label>
+        <label class="field" style="margin-bottom:0"><span>起始日</span><input type="date" id="cFrom"></label>
+        <label class="field" style="margin-bottom:0"><span>結束日（可留空＝單日）</span><input type="date" id="cTo"></label>
+        <button class="btn warn" id="btnClose">設為停用</button>
+        <button class="btn flat" id="btnReopen">解除停用</button>
+      </div>
+      <div id="cMsg" style="margin-top:14px"></div>
+      <div id="closedList" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <div id="admImport" class="admpane hide">
+    <div class="card">
+      <h2>匯入 Excel 名單</h2>
+      <div class="row" style="margin-bottom:14px">
+        <label class="field" style="margin-bottom:0;flex:1;min-width:270px"><span>要匯入哪一份名單</span>
+          <select id="impTarget">
+            <option value="roster">全校名單（愛校服務用：學號、姓名、班級、座號）</option>
+            <option value="clean">補打掃名單（含應打掃次數與已完成紀錄）</option>
+            <option value="classonly">只更新補打掃名單的班級座號（換班對照）</option>
+          </select></label>
+      </div>
+      <label class="filelabel" for="fileXlsx">點此選擇 Excel 檔（.xlsx），或將檔案拖曳到這裡</label>
+      <input type="file" id="fileXlsx" accept=".xlsx" class="hide">
+      <div id="impMsg" style="margin-top:14px"></div>
+    </div>
+    <div class="card hide" id="impStep2">
+      <h2>確認欄位對應</h2>
+      <div class="row" style="margin-bottom:14px">
+        <label class="field" style="margin-bottom:0"><span>工作表</span><select id="impSheet"></select></label>
+        <label class="field" style="margin-bottom:0"><span>標題列</span><input id="impHeaderRow" type="number" min="1" style="width:118px"></label>
+      </div>
+      <div class="mapgrid" id="impMap"></div>
+      <div class="row" style="margin-top:18px">
+        <button class="btn" id="btnPreview">核對並預覽</button>
+        <button class="btn flat" id="btnCancelImp">取消</button>
+      </div>
+      <div id="impPreview" style="margin-top:14px"></div>
+    </div>
+  </div>
+
+  <div id="admStudents" class="admpane hide">
+    <div class="card">
+      <h2>學生資料</h2>
+      <div class="row" style="margin-bottom:16px">
+        <label class="field" style="margin-bottom:0"><span>名單</span><select id="sSource">
+          <option value="clean">補打掃名單</option><option value="roster">全校名單</option></select></label>
+        <label class="field" style="margin-bottom:0"><span>班級</span><select id="sCls"><option value="">全部</option></select></label>
+        <label class="field" style="margin-bottom:0"><span>搜尋</span><input id="sKey" placeholder="學號或姓名" style="width:175px"></label>
+        <label class="muted" style="display:flex;align-items:center;gap:7px;font-weight:600"><input type="checkbox" id="sUndone"> 只看未完成</label>
+        <span class="muted" id="sCount"></span>
+      </div>
+      <div class="scroll"><table id="tblStu"><thead></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+  <div id="admAccounts" class="admpane hide">
+    <div class="card">
+      <h2>管理員帳號</h2>
+      <p class="muted">所有管理員權限相同。建議每位需要登記需求的老師都有自己的帳號，方便追溯是誰登記的。</p>
+      <div class="row" style="align-items:flex-end;margin-top:14px">
+        <label class="field" style="margin-bottom:0"><span>帳號</span><input id="newUser" autocomplete="off" style="width:155px"></label>
+        <label class="field" style="margin-bottom:0"><span>顯示名稱</span><input id="newDisp" placeholder="例如 王小明" style="width:165px"></label>
+        <label class="field" style="margin-bottom:0"><span>密碼（至少 6 碼）</span><input id="newPass" type="password" autocomplete="new-password" style="width:185px"></label>
+        <button class="btn" id="btnAddAdm">新增</button>
+      </div>
+      <div id="acMsg" style="margin-top:14px"></div>
+      <div id="acList" style="margin-top:14px"></div>
+    </div>
+    <div class="card">
+      <h2>修改自己的密碼</h2>
+      <div class="row" style="align-items:flex-end">
+        <label class="field" style="margin-bottom:0"><span>目前密碼</span><input id="oldPass" type="password" style="width:175px"></label>
+        <label class="field" style="margin-bottom:0"><span>新密碼</span><input id="chgPass" type="password" style="width:175px"></label>
+        <button class="btn" id="btnChgPass">更新密碼</button>
+      </div>
+      <div id="pwMsg" style="margin-top:14px"></div>
+    </div>
+  </div>
+
+  <div id="admData" class="admpane hide">
+    <div class="card">
+      <h2>備份</h2>
+      <div class="row">
+        <button class="btn" id="btnBackupJson">下載備份檔（JSON）</button>
+        <button class="btn ghost" id="btnBackupXlsx">下載名單（Excel）</button>
+        <label class="btn flat" for="fileRestore" style="cursor:pointer">還原 JSON 備份</label>
+        <input type="file" id="fileRestore" accept=".json" class="hide">
+      </div>
+      <p class="muted" style="margin-top:14px">
+        <b>JSON</b>：唯一能還原回系統的格式，建議每週備份一次。<br>
+        <b>Excel</b>：分成愛校預約、補打掃等分頁，給人看和存檔用，不能倒回系統。
+      </p>
+      <div id="dataMsg"></div>
+    </div>
+    <div class="card">
+      <h2>設定</h2>
+      <div class="row" style="align-items:flex-end">
+        <label class="field" style="margin-bottom:0"><span>時段</span><input id="setSlot" style="width:170px"></label>
+        <label class="field" style="margin-bottom:0"><span>愛校一次可約幾場</span><input type="number" id="setMax" min="1" style="width:130px"></label>
+        <label class="field" style="margin-bottom:0"><span>閒置幾秒自動結束</span><input type="number" id="setIdle" min="0" style="width:140px"></label>
+        <label class="field" style="margin-bottom:0"><span>舊紀錄年份（702→7月）</span><input type="number" id="setYear" style="width:140px"></label>
+        <button class="btn" id="btnSaveSet">儲存設定</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>清除資料</h2>
+      <div class="row">
+        <button class="btn warn" id="btnClearBk">清除所有預約</button>
+        <button class="btn warn" id="btnClearAll">清除全部資料</button>
+      </div>
+      <p class="muted" style="margin-bottom:0">清除前請先下載 JSON 備份。資料存在這台裝置的瀏覽器中，不會上傳。</p>
+    </div>
+  </div>
+</section>
+
+<dialog id="dlg"><button class="close" id="dlgClose">×</button><div class="dlg" id="dlgBody"></div></dialog>
+
+<footer class="foot">衛生組返掃與愛校預約　・　資料僅存於本機</footer>
+<script>
+/* ============================================================
+   學務處衛生組　補掃暨愛校預約系統
+   單機版：資料存於本機瀏覽器 localStorage，不上傳
+   ============================================================ */
+(function(){
+'use strict';
+
+/* ---------- 工具 ---------- */
+const $=s=>document.querySelector(s);
+const $$=s=>Array.from(document.querySelectorAll(s));
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad2=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+const today=()=>ymd(new Date());
+const parseYmd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);};
+const WD=['日','一','二','三','四','五','六'];
+const wd=d=>WD[parseYmd(d).getDay()];
+function msg(el,t,k){ el.innerHTML = t?'<div class="notice '+(k||'info')+'">'+t+'</div>':''; }
+function openDlg(h){ const d=$('#dlg'); $('#dlgBody').innerHTML=h; if(!d.open) d.showModal(); }
+const TYPE={love:{name:'愛校服務',cls:'love'},clean:{name:'補打掃',cls:'clean'}};
+
+/* ---------- SHA-256 ---------- */
+function sha256(str){
+  function rr(v,a){return (v>>>a)|(v<<(32-a));}
+  const K=[],H=[];
+  (function(){function isP(n){for(let i=2;i*i<=n;i++)if(n%i===0)return false;return true;}
+   let c=0,n=2;while(c<64){if(isP(n)){if(c<8)H[c]=(Math.pow(n,1/2)%1*0x100000000)|0;K[c]=(Math.pow(n,1/3)%1*0x100000000)|0;c++;}n++;}})();
+  const b=new TextEncoder().encode(str), w=[], len=b.length*8;
+  for(let i=0;i<b.length;i++) w[i>>2]=(w[i>>2]||0)|(b[i]<<((3-i%4)*8));
+  w[len>>5]=(w[len>>5]||0)|(0x80<<(24-len%32));
+  w[((len+64>>9)<<4)+15]=len;
+  for(let i=0;i<w.length;i++) if(w[i]===undefined) w[i]=0;
+  const m=new Array(64); let h=H.slice();
+  for(let i=0;i<w.length;i+=16){
+    const a=h.slice();
+    for(let j=0;j<64;j++){
+      if(j<16) m[j]=w[i+j]|0;
+      else{
+        const s0=rr(m[j-15],7)^rr(m[j-15],18)^(m[j-15]>>>3);
+        const s1=rr(m[j-2],17)^rr(m[j-2],19)^(m[j-2]>>>10);
+        m[j]=(m[j-16]+s0+m[j-7]+s1)|0;
+      }
+      const S1=rr(a[4],6)^rr(a[4],11)^rr(a[4],25);
+      const ch=(a[4]&a[5])^(~a[4]&a[6]);
+      const t1=(a[7]+S1+ch+K[j]+m[j])|0;
+      const S0=rr(a[0],2)^rr(a[0],13)^rr(a[0],22);
+      const mj=(a[0]&a[1])^(a[0]&a[2])^(a[1]&a[2]);
+      const t2=(S0+mj)|0;
+      a[7]=a[6];a[6]=a[5];a[5]=a[4];a[4]=(a[3]+t1)|0;a[3]=a[2];a[2]=a[1];a[1]=a[0];a[0]=(t1+t2)|0;
+    }
+    for(let j=0;j<8;j++) h[j]=(h[j]+a[j])|0;
+  }
+  return h.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('');
+}
+const hashPw=(u,p)=>sha256('acs$'+u+'$'+p);
+
+/* ---------- 讀 XLSX ---------- */
+async function inflateRaw(bytes){
+  if(typeof DecompressionStream==='undefined') throw new Error('此瀏覽器不支援解壓縮，請改用新版 Safari / Chrome / Edge');
+  const s=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+async function readZip(buf){
+  const u8=new Uint8Array(buf), dv=new DataView(u8.buffer,u8.byteOffset,u8.byteLength);
+  let e=-1;
+  for(let i=u8.length-22;i>=Math.max(0,u8.length-66000);i--) if(dv.getUint32(i,true)===0x06054b50){e=i;break;}
+  if(e<0) throw new Error('這不是有效的 .xlsx 檔');
+  const cnt=dv.getUint16(e+10,true); let p=dv.getUint32(e+16,true);
+  const ent={};
+  for(let i=0;i<cnt;i++){
+    if(dv.getUint32(p,true)!==0x02014b50) break;
+    const method=dv.getUint16(p+10,true), csize=dv.getUint32(p+20,true);
+    const nl=dv.getUint16(p+28,true), el=dv.getUint16(p+30,true), cl=dv.getUint16(p+32,true);
+    const lho=dv.getUint32(p+42,true);
+    ent[new TextDecoder('utf-8').decode(u8.subarray(p+46,p+46+nl))]={method,csize,lho};
+    p+=46+nl+el+cl;
+  }
+  const out={};
+  for(const n in ent){
+    const f=ent[n];
+    const st=f.lho+30+dv.getUint16(f.lho+26,true)+dv.getUint16(f.lho+28,true);
+    const raw=u8.subarray(st,st+f.csize);
+    out[n]=f.method===0?raw.slice():await inflateRaw(raw);
+  }
+  return out;
+}
+const XD=new TextDecoder('utf-8');
+function unesc(s){
+  return s.replace(/&#x([0-9a-fA-F]+);/g,(m,h)=>String.fromCodePoint(parseInt(h,16)))
+          .replace(/&#(\d+);/g,(m,d)=>String.fromCodePoint(parseInt(d,10)))
+          .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&');
+}
+function colIdx(r){let n=0;for(let i=0;i<r.length;i++){const c=r.charCodeAt(i);if(c<65||c>90)break;n=n*26+(c-64);}return n-1;}
+async function parseXlsx(buf){
+  const zip=await readZip(buf);
+  let shared=[];
+  if(zip['xl/sharedStrings.xml']){
+    const x=XD.decode(zip['xl/sharedStrings.xml']);
+    shared=(x.match(/<si>[\s\S]*?<\/si>|<si\/>/g)||[]).map(si=>
+      (si.match(/<t[^>]*>([\s\S]*?)<\/t>/g)||[]).map(t=>unesc(t.replace(/<t[^>]*>/,'').replace(/<\/t>/,''))).join(''));
+  }
+  const wb=XD.decode(zip['xl/workbook.xml']||new Uint8Array());
+  const rx=zip['xl/_rels/workbook.xml.rels']?XD.decode(zip['xl/_rels/workbook.xml.rels']):'';
+  const rels={};
+  (rx.match(/<Relationship[^>]*\/>/g)||[]).forEach(r=>{
+    const id=(r.match(/Id="([^"]+)"/)||[])[1]; let t=(r.match(/Target="([^"]+)"/)||[])[1];
+    if(id&&t) rels[id]='xl/'+t.replace(/^\/?xl\//,'').replace(/^\.\//,'');
+  });
+  const sheets=[];
+  (wb.match(/<sheet[^>]*\/>|<sheet[^>]*>/g)||[]).forEach(s=>{
+    const name=unesc((s.match(/name="([^"]*)"/)||[])[1]||'');
+    const rid=(s.match(/r:id="([^"]+)"/)||[])[1];
+    if(rid&&rels[rid]) sheets.push({name,path:rels[rid]});
+  });
+  const out=[];
+  for(const sh of sheets){
+    const data=zip[sh.path]; if(!data) continue;
+    const xml=XD.decode(data), rows=[];
+    const rowRe=/<row[^>]*r="(\d+)"[^>]*>([\s\S]*?)<\/row>|<row[^>]*r="(\d+)"[^>]*\/>/g;
+    let m;
+    while((m=rowRe.exec(xml))){
+      const ri=parseInt(m[1]||m[3],10)-1, body=m[2]||'', arr=[];
+      const cRe=/<c([^>]*?)\/>|<c([^>]*?)>([\s\S]*?)<\/c>/g; let cm;
+      while((cm=cRe.exec(body))){
+        const at=(cm[1]!==undefined?cm[1]:cm[2])||'', inner=cm[3]||'';
+        const ref=(at.match(/r="([A-Z]+)\d+"/)||[])[1];
+        const t=(at.match(/t="([^"]+)"/)||[])[1]||'n';
+        const ci=ref?colIdx(ref):arr.length;
+        let v=null;
+        if(t==='inlineStr'){
+          v=(inner.match(/<t[^>]*>([\s\S]*?)<\/t>/g)||[]).map(x=>unesc(x.replace(/<t[^>]*>/,'').replace(/<\/t>/,''))).join('');
+        }else{
+          const vm=inner.match(/<v[^>]*>([\s\S]*?)<\/v>/);
+          if(vm){
+            const raw=unesc(vm[1]);
+            if(t==='s') v=shared[parseInt(raw,10)]!==undefined?shared[parseInt(raw,10)]:'';
+            else if(t==='b') v=raw==='1'?'TRUE':'FALSE';
+            else if(t==='e') v=null;
+            else if(t==='str') v=raw;
+            else{const n=parseFloat(raw); v=isNaN(n)?raw:n;}
+          }
+        }
+        arr[ci]=v;
+      }
+      for(let i=0;i<arr.length;i++) if(arr[i]===undefined) arr[i]=null;
+      rows[ri]=arr;
+    }
+    for(let i=0;i<rows.length;i++) if(!rows[i]) rows[i]=[];
+    out.push({name:sh.name,rows});
+  }
+  return out;
+}
+
+/* ---------- 寫 XLSX ---------- */
+const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRCT[(c^u8[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function xesc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');}
+function colName(n){let s='';n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26;}return s;}
+function buildXlsx(sheets){
+  const ENC=new TextEncoder(), files={};
+  const sheetXml=rows=>{
+    let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+    rows.forEach((row,ri)=>{
+      x+='<row r="'+(ri+1)+'">';
+      row.forEach((v,ci)=>{
+        if(v==null||v==='') return;
+        const ref=colName(ci)+(ri+1);
+        if(typeof v==='number'&&isFinite(v)) x+='<c r="'+ref+'"><v>'+v+'</v></c>';
+        else x+='<c r="'+ref+'" t="inlineStr"><is><t xml:space="preserve">'+xesc(v)+'</t></is></c>';
+      });
+      x+='</row>';
+    });
+    return x+'</sheetData></worksheet>';
+  };
+  files['[Content_Types].xml']='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+    +sheets.map((s,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')+'</Types>';
+  files['_rels/.rels']='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  files['xl/workbook.xml']='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
+    +sheets.map((s,i)=>'<sheet name="'+xesc(s.name)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets></workbook>';
+  files['xl/_rels/workbook.xml.rels']='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    +sheets.map((s,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'</Relationships>';
+  sheets.forEach((s,i)=>{files['xl/worksheets/sheet'+(i+1)+'.xml']=sheetXml(s.rows);});
+  const parts=[],cd=[]; let off=0;
+  for(const n in files){
+    const nb=ENC.encode(n), data=ENC.encode(files[n]), crc=crc32(data);
+    const lh=new Uint8Array(30+nb.length), dv=new DataView(lh.buffer);
+    dv.setUint32(0,0x04034b50,true);dv.setUint16(4,20,true);dv.setUint16(6,0x0800,true);
+    dv.setUint32(14,crc,true);dv.setUint32(18,data.length,true);dv.setUint32(22,data.length,true);
+    dv.setUint16(26,nb.length,true); lh.set(nb,30);
+    parts.push(lh,data);
+    const ch=new Uint8Array(46+nb.length), cv=new DataView(ch.buffer);
+    cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,0x0800,true);
+    cv.setUint32(16,crc,true);cv.setUint32(20,data.length,true);cv.setUint32(24,data.length,true);
+    cv.setUint16(28,nb.length,true);cv.setUint32(42,off,true); ch.set(nb,46);
+    cd.push(ch); off+=lh.length+data.length;
+  }
+  const cds=cd.reduce((a,b)=>a+b.length,0);
+  const eo=new Uint8Array(22), ev=new DataView(eo.buffer);
+  ev.setUint32(0,0x06054b50,true);ev.setUint16(8,cd.length,true);ev.setUint16(10,cd.length,true);
+  ev.setUint32(12,cds,true);ev.setUint32(16,off,true);
+  const all=parts.concat(cd,[eo]);
+  const out=new Uint8Array(all.reduce((a,b)=>a+b.length,0));
+  let p=0; all.forEach(u=>{out.set(u,p);p+=u.length;});
+  return out;
+}
+
+/* ---------- 資料 ---------- */
+const KEY='hygieneBooking.v2';
+let DB=null;
+function defaultDB(){
+  const n=new Date();
+  return {
+    admins:[], students:{}, roster:{},
+    demands:{}, closed:{love:{},clean:{}}, bookings:[],
+    settings:{slot:'12:30-13:00',days:[1,4,5],loveMax:3,idle:90,startYear:n.getMonth()>=6?n.getFullYear():n.getFullYear()-1},
+    lastBackup:null, seq:1
+  };
+}
+function load(){
+  try{DB=JSON.parse(localStorage.getItem(KEY))||defaultDB();}catch(e){DB=defaultDB();}
+  fill(DB,defaultDB());
+}
+function fill(o,d){
+  for(const k in d){
+    if(o[k]===undefined) o[k]=d[k];
+    else if(d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k])) fill(o[k],d[k]);
+  }
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(DB));}
+  catch(e){alert('儲存失敗，瀏覽器空間可能已滿：'+e.message);}
+}
+const nextId=()=>'x'+(DB.seq++);
+
+/* ---------- 查詢 ---------- */
+function person(sid){
+  const c=DB.students[sid], r=DB.roster[sid];
+  if(!c&&!r) return null;
+  return {
+    sid, name:(c&&c.name)||(r&&r.name)||'',
+    cls:(c&&c.cls)||(r&&r.cls)||'', seat:(c&&c.seat)||(r&&r.seat)||'',
+    clean:c||null
+  };
+}
+const recs=st=>(st&&st.records)||[];
+const doneOf=sid=>{const c=DB.students[sid];return c?recs(c).length:0;};
+function activeBookings(sid,type){
+  const t=today();
+  return DB.bookings.filter(b=>b.sid===sid&&b.status==='booked'&&b.date>=t&&(!type||b.type===type));
+}
+function allBookings(sid,type){
+  return DB.bookings.filter(b=>b.sid===sid&&b.status==='booked'&&(!type||b.type===type));
+}
+function leftClean(sid){
+  const c=DB.students[sid]; if(!c) return 0;
+  return Math.max(0,(c.required||0)-recs(c).length-activeBookings(sid,'clean').length);
+}
+const isClosed=(d,t)=>!!(DB.closed[t]&&DB.closed[t][d]);
+const demandsOf=(d,t)=>(DB.demands[d]||[]).filter(x=>!t||x.type===t);
+const bookedOn=(d,did)=>DB.bookings.filter(b=>b.date===d&&b.status==='booked'&&(did===undefined||b.did===did)).length;
+const bookedType=(d,t)=>DB.bookings.filter(b=>b.date===d&&b.status==='booked'&&b.type===t).length;
+function capOf(d,t){return demandsOf(d,t).reduce((a,x)=>a+(+x.cap||0),0);}
+function dayOpenFor(d,t){
+  return !isClosed(d,t)&&demandsOf(d,t).length>0&&bookedType(d,t)<capOf(d,t);
+}
+/* 已有預約或已過去的日期不得更動開放狀態 */
+function lockReason(d,t){
+  if(d<today()) return '已經過去的日期不能更動';
+  if(bookedType(d,t)>0) return '這一天已經有人預約，不能更動';
+  return '';
+}
+function openDatesFor(t){
+  const td=today();
+  return Object.keys(DB.demands).filter(d=>d>=td&&dayOpenFor(d,t)).sort().slice(0,120);
+}
+function markToDate(mk){
+  const s=String(mk).trim();
+  if(!/^\d{3,4}$/.test(s)) return null;
+  const m=s.length===3?+s.slice(0,1):+s.slice(0,2), d=+s.slice(-2);
+  if(m<1||m>12||d<1||d>31) return null;
+  return (DB.settings.startYear+(m>=7?0:1))+'-'+pad2(m)+'-'+pad2(d);
+}
+const recLabel=r=>r.date?r.date.slice(5).replace('-','/'):(r.mark||'—');
+
+/* ---------- 登入 / 閒置 ---------- */
+let SESSION=null, PENDING=null, idleTimer=null;
+function resetIdle(){
+  clearTimeout(idleTimer);
+  const sec=+DB.settings.idle||0;
+  if(sec>0&&SESSION&&SESSION.type==='student') idleTimer=setTimeout(()=>gate(),sec*1000);
+}
+['click','keydown','touchstart'].forEach(e=>document.addEventListener(e,resetIdle,{passive:true}));
+
+function gate(){
+  SESSION=null; PENDING=null; clearTimeout(idleTimer);
+  $('#viewGate').classList.remove('hide');
+  ['#viewConfirm','#viewStu','#viewAdm','#topbar'].forEach(s=>$(s).classList.add('hide'));
+  $('#formStu').reset(); $('#formAdm').reset(); msg($('#gateMsg'),'');
+}
+function enter(){
+  $('#viewGate').classList.add('hide'); $('#viewConfirm').classList.add('hide');
+  $('#topbar').classList.remove('hide');
+  if(SESSION.type==='admin'){
+    const a=DB.admins.find(x=>x.user===SESSION.user)||{};
+    $('#whoText').textContent='管理者　'+(a.disp||SESSION.user);
+    $('#viewAdm').classList.remove('hide'); renderAdmin();
+  }else{
+    const p=person(SESSION.sid);
+    $('#whoText').textContent=p.cls+'　'+p.name;
+    $('#viewStu').classList.remove('hide'); renderStu(); resetIdle();
+  }
+}
+$('#tabStu').onclick=()=>{$('#tabStu').classList.add('on');$('#tabAdm').classList.remove('on');
+  $('#formStu').classList.remove('hide');$('#formAdm').classList.add('hide');msg($('#gateMsg'),'');};
+$('#tabAdm').onclick=()=>{$('#tabAdm').classList.add('on');$('#tabStu').classList.remove('on');
+  $('#formAdm').classList.remove('hide');$('#formStu').classList.add('hide');msg($('#gateMsg'),'');};
+
+$('#formStu').onsubmit=e=>{
+  e.preventDefault();
+  const sid=$('#stuSid').value.trim(), nm=$('#stuName').value.trim().replace(/\s/g,'');
+  const p=person(sid);
+  if(!p){ msg($('#gateMsg'),'查無此學號，請確認後再試，或洽衛生組。','err'); return; }
+  if(p.name.replace(/\s/g,'')!==nm){ msg($('#gateMsg'),'學號與姓名不符。','err'); return; }
+  PENDING=sid;
+  $('#cClass').textContent=p.cls||'—'; $('#cSeat').textContent=p.seat||'—';
+  $('#cName').textContent=p.name; $('#cSid').textContent=p.sid;
+  $('#viewGate').classList.add('hide'); $('#viewConfirm').classList.remove('hide');
+};
+$('#btnConfirmYes').onclick=()=>{ SESSION={type:'student',sid:PENDING}; enter(); };
+$('#btnConfirmNo').onclick=()=>gate();
+
+$('#formAdm').onsubmit=e=>{
+  e.preventDefault();
+  const u=$('#admUser').value.trim(), p=$('#admPass').value;
+  if(DB.admins.length===0){
+    if(u==='admin'&&p==='admin1234'){
+      DB.admins.push({user:'admin',disp:'系統管理員',hash:hashPw('admin','admin1234'),created:today()});
+      save(); SESSION={type:'admin',user:'admin'}; enter(); return;
+    }
+    msg($('#gateMsg'),'首次使用請以 admin / admin1234 登入。','err'); return;
+  }
+  const a=DB.admins.find(x=>x.user===u);
+  if(!a||a.hash!==hashPw(u,p)){ msg($('#gateMsg'),'帳號或密碼錯誤。','err'); return; }
+  SESSION={type:'admin',user:u}; enter();
+};
+$('#btnLogout').onclick=()=>gate();
+$('#dlgClose').onclick=()=>$('#dlg').close();
+
+/* ============================================================
+   學生端
+   ============================================================ */
+let calYM=null;
+function renderStu(){
+  const p=person(SESSION.sid);
+  $('#bigClean').disabled=!p.clean;
+  $('#bigClean').querySelector('.s').textContent = p.clean
+    ? '尚需 '+leftClean(SESSION.sid)+' 次' : '你不在補打掃名單中';
+  fillLove(); fillClean(); renderMine();
+  if(!calYM){const t=new Date();calYM={y:t.getFullYear(),m:t.getMonth()};}
+  drawCal($('#calGrid'),$('#calTitle'),calYM,'stu');
+}
+function showPane(which){
+  [['#bigLove','#paneLove'],['#bigClean','#paneClean'],['#bigMine','#paneMine']].forEach(([b,p])=>{
+    const on=p==='#'+which;
+    $(b).classList.toggle('on',on); $(p).classList.toggle('hide',!on);
+  });
+}
+$('#bigLove').onclick=()=>{showPane('paneLove');fillLove();};
+$('#bigClean').onclick=()=>{showPane('paneClean');fillClean();};
+$('#bigMine').onclick=()=>{showPane('paneMine');renderMine();};
+
+function fillDates(sel,type){
+  const list=openDatesFor(type);
+  sel.innerHTML='';
+  if(!list.length){ sel.innerHTML='<option value="">目前沒有開放的日期</option>'; return; }
+  list.forEach(d=>{
+    const o=document.createElement('option');
+    o.value=d; o.textContent=d.slice(5).replace('-','/')+'（週'+wd(d)+'）剩 '+(capOf(d,type)-bookedType(d,type))+' 位';
+    sel.appendChild(o);
+  });
+}
+function fillPlaces(dateSel,placeSel,type){
+  const d=dateSel.value; placeSel.innerHTML='';
+  if(!d){ placeSel.innerHTML='<option value="">—</option>'; return; }
+  demandsOf(d,type).forEach(x=>{
+    const used=bookedOn(d,x.id), full=used>=x.cap;
+    const o=document.createElement('option');
+    o.value=x.id; o.disabled=full;
+    o.textContent=x.place+(x.teacher?'（'+x.teacher+(x.subject?' 老師・'+x.subject:' 老師')+'）':'')+'　'+used+'/'+x.cap+(full?' 已滿':'');
+    placeSel.appendChild(o);
+  });
+  const ok=demandsOf(d,type).find(x=>bookedOn(d,x.id)<x.cap);
+  if(ok) placeSel.value=ok.id;
+}
+function fillLove(){
+  const act=activeBookings(SESSION.sid,'love'), max=DB.settings.loveMax;
+  $('#loveStatus').innerHTML='目前已排 <b>'+act.length+'</b> / '+max+' 場。一張愛校單需完成 '+max+' 場，'+max+' 場排滿後，要等時間過了才能再排。';
+  fillDates($('#loveDate'),'love'); fillPlaces($('#loveDate'),$('#lovePlace'),'love');
+  $('#btnLoveBook').disabled=act.length>=max;
+  renderBookList('#loveList','love');
+}
+function fillClean(){
+  const c=DB.students[SESSION.sid];
+  if(!c){ $('#paneClean').querySelector('.stats').classList.add('hide'); return; }
+  $('#pReq').textContent=c.required||0;
+  $('#pDone').textContent=recs(c).length;
+  $('#pPend').textContent=activeBookings(SESSION.sid,'clean').length;
+  $('#pLeft').textContent=leftClean(SESSION.sid);
+  fillDates($('#cleanDate'),'clean'); fillPlaces($('#cleanDate'),$('#cleanPlace'),'clean');
+  $('#btnCleanBook').disabled=leftClean(SESSION.sid)<=0;
+  renderBookList('#cleanList','clean');
+}
+$('#loveDate').onchange=()=>fillPlaces($('#loveDate'),$('#lovePlace'),'love');
+$('#cleanDate').onchange=()=>fillPlaces($('#cleanDate'),$('#cleanPlace'),'clean');
+
+function book(type){
+  const M=$(type==='love'?'#loveMsg':'#cleanMsg');
+  const d=$(type==='love'?'#loveDate':'#cleanDate').value;
+  const did=$(type==='love'?'#lovePlace':'#cleanPlace').value;
+  if(!d||!did){ msg(M,'請先選擇日期與地點。','warn'); return; }
+  if(d<today()){ msg(M,'不能預約已經過去的日期。','err'); return; }
+  if(isClosed(d,type)||!demandsOf(d,type).length){ msg(M,'這一天不開放預約。','err'); return; }
+  if(type==='love'&&activeBookings(SESSION.sid,'love').length>=DB.settings.loveMax){
+    msg(M,'你已經排滿 '+DB.settings.loveMax+' 場，完成後才能再排。','warn'); return; }
+  if(type==='clean'&&leftClean(SESSION.sid)<=0){ msg(M,'你的補打掃次數已經排滿或已完成。','warn'); return; }
+  if(DB.bookings.some(b=>b.sid===SESSION.sid&&b.date===d&&b.status==='booked')){
+    msg(M,d.slice(5).replace('-','/')+' 你已經有預約了，一天只能排一場。','warn'); return; }
+  const dm=demandsOf(d,type).find(x=>x.id===did);
+  if(!dm||bookedOn(d,did)>=dm.cap){ msg(M,'這個地點名額已滿，請換一個。','err'); return; }
+  DB.bookings.push({id:nextId(),type,sid:SESSION.sid,date:d,did,place:dm.place,
+    teacher:dm.teacher||'',subject:dm.subject||'',slot:DB.settings.slot,status:'booked',created:new Date().toISOString()});
+  save(); msg(M,'已加入：'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）'+esc(dm.place),'info');
+  renderStu(); showPane(type==='love'?'paneLove':'paneClean');
+  if(type==='love'&&activeBookings(SESSION.sid,'love').length>=DB.settings.loveMax) showSlip();
+}
+$('#btnLoveBook').onclick=()=>book('love');
+$('#btnCleanBook').onclick=()=>book('clean');
+
+function renderBookList(sel,type){
+  const list=activeBookings(SESSION.sid,type).sort((a,b)=>a.date<b.date?-1:1);
+  const box=$(sel);
+  if(!list.length){ box.innerHTML='<p class="muted">目前沒有預約。</p>'; return; }
+  box.innerHTML='<h3>已排定的時段</h3><table><thead><tr><th>日期</th><th>時段</th><th>地點</th><th>核發老師</th><th></th></tr></thead><tbody>'
+    +list.map(b=>'<tr><td class="num">'+b.date.slice(5).replace('-','/')+'（週'+wd(b.date)+'）</td><td class="num">'+esc(b.slot)+'</td>'
+      +'<td>'+esc(b.place)+'</td><td>'+esc(b.teacher||'—')+'</td>'
+      +'<td><button class="btn sm flat" data-cx="'+b.id+'">取消</button></td></tr>').join('')+'</tbody></table>';
+  box.querySelectorAll('[data-cx]').forEach(btn=>btn.onclick=()=>{
+    if(!confirm('確定取消這個時段？')) return;
+    const b=DB.bookings.find(x=>x.id===btn.dataset.cx);
+    if(b){ b.status='cancel'; save(); renderStu(); }
+  });
+}
+function slipHtml(){
+  const p=person(SESSION.sid);
+  const list=activeBookings(SESSION.sid).sort((a,b)=>a.date<b.date?-1:1);
+  if(!list.length) return '<p class="muted">你目前沒有任何預約。</p>';
+  return '<div class="slip"><div class="who">'+esc(p.cls)+'　'+esc(p.name)+'</div><ol>'
+    +list.map(b=>'<li><b>'+b.date.replace(/-/g,'/')+'（週'+wd(b.date)+'）'+esc(b.slot)+'</b><br>'
+      +esc(b.place)+(b.teacher?'　'+esc(b.teacher)+' 老師':'')+'　<span class="tag '+TYPE[b.type].cls+'">'+TYPE[b.type].name+'</span></li>').join('')
+    +'</ol><div class="remind">請把以上日期抄到你的<b>愛校單</b>上，每次完成後記得請現場老師簽名或蓋章。<br>沒有簽名就不算完成。</div></div>';
+}
+function showSlip(){ openDlg('<h3>預約完成</h3>'+slipHtml()); }
+function renderMine(){
+  $('#mineBody').innerHTML=slipHtml()
+    +'<p class="muted" style="margin-top:14px">忘記或弄丟時，隨時用學號姓名登入就能再看一次。</p>';
+}
+$('#calPrev').onclick=()=>{calYM.m--;if(calYM.m<0){calYM.m=11;calYM.y--;}drawCal($('#calGrid'),$('#calTitle'),calYM,'stu');};
+$('#calNext').onclick=()=>{calYM.m++;if(calYM.m>11){calYM.m=0;calYM.y++;}drawCal($('#calGrid'),$('#calTitle'),calYM,'stu');};
+
+/* ============================================================
+   日曆
+   ============================================================ */
+function drawCal(grid,titleEl,ym,mode){
+  titleEl.textContent=ym.y+' 年 '+(ym.m+1)+' 月';
+  const first=new Date(ym.y,ym.m,1), start=new Date(ym.y,ym.m,1-first.getDay());
+  let h=''; WD.forEach(w=>h+='<div class="hd">'+w+'</div>');
+  for(let i=0;i<42;i++){
+    const dt=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);
+    const d=ymd(dt), out=dt.getMonth()!==ym.m;
+    const bs=DB.bookings.filter(b=>b.date===d&&b.status==='booked');
+    const someOpen=['love','clean'].some(t=>demandsOf(d,t).length>0&&!isClosed(d,t));
+    let cls='day'+(out?' out':'')+(someOpen?' open':'')+(d===today()?' today':'');
+    const ents=bs.slice(0,6).map(b=>{
+      const p=person(b.sid);
+      return '<div class="ent"><span class="pt '+TYPE[b.type].cls+'"></span>'+esc(p?p.cls:'')+'</div>';
+    }).join('')+(bs.length>6?'<div class="ent muted">＋'+(bs.length-6)+'</div>':'');
+    h+='<div class="'+cls+'" data-d="'+d+'"><div class="d">'+dt.getDate()+'</div>'+ents+'</div>';
+  }
+  grid.innerHTML=h;
+  grid.querySelectorAll('.day').forEach(el=>el.onclick=()=>dayInfo(el.dataset.d,mode));
+}
+function dayInfo(d,mode){
+  const bs=DB.bookings.filter(x=>x.date===d&&x.status==='booked');
+  let h='<h3>'+d.replace(/-/g,'/')+'（週'+wd(d)+'）</h3>';
+  ['love','clean'].forEach(t=>{
+    const dm=demandsOf(d,t);
+    if(!dm.length&&!isClosed(d,t)&&mode!=='adm') return;
+    h+='<p><span class="tag '+TYPE[t].cls+'">'+TYPE[t].name+'</span> ';
+    h+= isClosed(d,t) ? '<b>本日停用</b>' :
+      (dm.length? dm.map(x=>esc(x.place)+(x.teacher?'／'+esc(x.teacher):'')+' '+bookedOn(d,x.id)+'/'+x.cap).join('　')
+                : '<span class="muted">尚未登記需求</span>');
+    if(mode==='adm'){
+      const lock=lockReason(d,t);
+      h+=' <button class="btn sm'+(isClosed(d,t)?'':' flat')+'" data-tg="'+t+'"'+(lock?' disabled title="'+esc(lock)+'"':'')+'>'
+        +(isClosed(d,t)?'重新開放':'停用這天')+'</button>';
+      if(lock) h+=' <span class="muted">'+esc(lock)+'</span>';
+    }
+    h+='</p>';
+  });
+  if(mode==='adm'){
+    h+= bs.length
+      ? '<table><thead><tr><th>類別</th><th>班級</th><th>座號</th><th>姓名</th><th>地點</th><th>核發老師</th></tr></thead><tbody>'
+        +bs.sort((a,b)=>{const A=person(a.sid)||{},B=person(b.sid)||{};return ((A.cls||'')+(A.seat||'')).localeCompare((B.cls||'')+(B.seat||''),'zh-Hant');})
+          .map(b=>{const p=person(b.sid)||{};
+            return '<tr><td><span class="tag '+TYPE[b.type].cls+'">'+TYPE[b.type].name+'</span></td><td>'+esc(p.cls||'')+'</td>'
+              +'<td class="num">'+esc(p.seat||'')+'</td><td>'+esc(p.name||b.sid)+'</td><td>'+esc(b.place)+'</td><td>'+esc(b.teacher||'—')+'</td></tr>';}).join('')
+        +'</tbody></table>'
+      : '<p class="muted">今天沒有人預約。</p>';
+  }else{
+    const mine=bs.filter(b=>b.sid===SESSION.sid);
+    h+='<p>這一天共 <b>'+bs.length+'</b> 人預約。</p>';
+    h+= mine.length ? '<p><span class="tag ok">你有預約：'+mine.map(b=>esc(b.place)).join('、')+'</span></p>'
+      : '<p class="muted">名單僅衛生組可查看。</p>';
+  }
+  openDlg(h);
+  if(mode==='adm') $('#dlgBody').querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{
+    const t=b.dataset.tg;
+    if(lockReason(d,t)) return;
+    if(isClosed(d,t)) delete DB.closed[t][d]; else DB.closed[t][d]=1;
+    save(); renderAdmin(); dayInfo(d,'adm');
+  });
+}
+
+/* ============================================================
+   管理端
+   ============================================================ */
+let acalYM=null;
+$('#admTabs').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-t]'); if(!b) return;
+  $$('#admTabs button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  const map={demand:'#admDemand',bookings:'#admBookings',calendar:'#admCalendar',import:'#admImport',
+    students:'#admStudents',accounts:'#admAccounts',data:'#admData'};
+  $$('.admpane').forEach(p=>p.classList.add('hide'));
+  $(map[b.dataset.t]).classList.remove('hide');
+  renderAdmin();
+});
+function renderAdmin(){
+  backupHint(); renderDemands(); renderClosed(); renderQuery(); renderStuTable(); renderAccounts();
+  $('#wdays').innerHTML=[1,2,3,4,5,6,0].map(i=>'<label><input type="checkbox" value="'+i+'"'
+    +(DB.settings.days.indexOf(i)>=0?' checked':'')+'>週'+WD[i]+'</label>').join('');
+  $('#setSlot').value=DB.settings.slot;
+  $('#setMax').value=DB.settings.loveMax;
+  $('#setIdle').value=DB.settings.idle;
+  $('#setYear').value=DB.settings.startYear;
+  if(!acalYM){const t=new Date();acalYM={y:t.getFullYear(),m:t.getMonth()};}
+  drawCal($('#acalGrid'),$('#acalTitle'),acalYM,'adm');
+  const love=$('#dType').value==='love';
+  $('#wrapTeacher').style.display=love?'':'none';
+  $('#wrapSubject').style.display=love?'':'none';
+}
+$('#acalPrev').onclick=()=>{acalYM.m--;if(acalYM.m<0){acalYM.m=11;acalYM.y--;}drawCal($('#acalGrid'),$('#acalTitle'),acalYM,'adm');};
+$('#acalNext').onclick=()=>{acalYM.m++;if(acalYM.m>11){acalYM.m=0;acalYM.y++;}drawCal($('#acalGrid'),$('#acalTitle'),acalYM,'adm');};
+$('#dType').onchange=()=>{
+  const love=$('#dType').value==='love';
+  $('#wrapTeacher').style.display=love?'':'none';
+  $('#wrapSubject').style.display=love?'':'none';
+};
+function backupHint(){
+  const el=$('#backupWarn');
+  if(!DB.lastBackup){ msg(el,'還沒做過備份。建議在「備份與設定」下載一次 JSON 備份檔。','warn'); return; }
+  const days=Math.floor((Date.now()-new Date(DB.lastBackup).getTime())/86400000);
+  if(days>=7) msg(el,'距離上次備份已經 <b>'+days+'</b> 天了，建議現在下載一份 JSON 備份。','err');
+  else msg(el,'');
+}
+
+/* ---- 需求登記 ---- */
+$('#btnAddDemand').onclick=()=>{
+  const t=$('#dType').value, d=$('#dDate').value, place=$('#dPlace').value.trim();
+  const cap=parseInt($('#dCap').value,10)||1;
+  const teacher=t==='love'?$('#dTeacher').value.trim():'', subject=t==='love'?$('#dSubject').value.trim():'';
+  const M=$('#dMsg');
+  if(!d||!place){ msg(M,'請填寫日期與地點。','warn'); return; }
+  if(d<today()){ msg(M,'不能登記已經過去的日期。','warn'); return; }
+  DB.demands[d]=(DB.demands[d]||[]).concat([{id:nextId(),type:t,place,cap,teacher,subject,by:SESSION.user}]);
+  save(); $('#dPlace').value='';
+  msg(M,'已新增 '+d.slice(5).replace('-','/')+'（週'+wd(d)+'）　'+esc(place)+'　'+cap+' 人。','info');
+  renderAdmin();
+};
+$('#btnBatchDemand').onclick=()=>{
+  const t=$('#dType').value, f=$('#bFrom').value, to=$('#bTo').value;
+  const cap=parseInt($('#bCap').value,10)||1;
+  const teacher=t==='love'?$('#dTeacher').value.trim():'', subject=t==='love'?$('#dSubject').value.trim():'';
+  const names=$('#bPlaces').value.split(/[,，、]/).map(s=>s.trim()).filter(Boolean);
+  const M=$('#dMsg');
+  if(!f||!to||!names.length){ msg(M,'請填寫起訖日期與至少一個地點。','warn'); return; }
+  if(f>to){ msg(M,'起始日不能晚於結束日。','warn'); return; }
+  const picked=$$('#wdays input:checked').map(x=>+x.value);
+  if(!picked.length){ msg(M,'請至少勾選一個星期。','warn'); return; }
+  DB.settings.days=picked;
+  const td=today(); let n=0;
+  for(let dt=parseYmd(f);ymd(dt)<=to;dt.setDate(dt.getDate()+1)){
+    const d=ymd(dt); if(d<td||picked.indexOf(dt.getDay())<0) continue;
+    const cur=(DB.demands[d]||[]).slice();
+    names.forEach(p=>{ if(!cur.some(x=>x.type===t&&x.place===p)) cur.push({id:nextId(),type:t,place:p,cap,teacher,subject,by:SESSION.user}); });
+    DB.demands[d]=cur; n++;
+  }
+  save(); msg(M,'已套用到 '+n+' 天。','info'); renderAdmin();
+};
+function renderDemands(){
+  const dates=Object.keys(DB.demands).filter(d=>demandsOf(d).length).sort();
+  const td=today(), future=dates.filter(d=>d>=td), past=dates.filter(d=>d<td);
+  const tbl=list=>'<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>核發老師</th><th>預約/需求</th><th></th></tr></thead><tbody>'
+    +list.map(d=>demandsOf(d).map(x=>
+      '<tr><td class="num">'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）</td>'
+      +'<td><span class="tag '+TYPE[x.type].cls+'">'+TYPE[x.type].name+'</span></td>'
+      +'<td>'+esc(x.place)+'</td><td>'+esc(x.teacher||'—')+(x.subject?'　'+esc(x.subject):'')+'</td>'
+      +'<td class="num">'+bookedOn(d,x.id)+' / '+x.cap+'</td>'
+      +'<td><button class="btn sm flat" data-dd="'+d+'|'+x.id+'">刪除</button></td></tr>').join('')).join('')
+    +'</tbody></table></div>';
+  const box=$('#demandList');
+  box.innerHTML=(future.length?'<h3>即將到來</h3>'+tbl(future):'<p class="muted">還沒有登記未來的需求。</p>')
+    +(past.length?'<h3 style="margin-top:16px">已過去（最近 15 天）</h3>'+tbl(past.slice(-15)):'');
+  box.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>{
+    const [d,id]=b.dataset.dd.split('|');
+    if(bookedOn(d,id)&&!confirm('這個時段已經有人預約，刪除後預約仍會保留。確定刪除？')) return;
+    DB.demands[d]=(DB.demands[d]||[]).filter(x=>x.id!==id);
+    if(!DB.demands[d].length) delete DB.demands[d];
+    save(); renderAdmin();
+  });
+}
+function setClosed(on){
+  const t=$('#cType').value, f=$('#cFrom').value, to=$('#cTo').value||f, M=$('#cMsg');
+  if(!f){ msg(M,'請選擇日期。','warn'); return; }
+  if(f>to){ msg(M,'起始日不能晚於結束日。','warn'); return; }
+  const types=t==='both'?['love','clean']:[t];
+  let n=0,skip=0;
+  for(let dt=parseYmd(f);ymd(dt)<=to;dt.setDate(dt.getDate()+1)){
+    const d=ymd(dt); let did=false;
+    types.forEach(x=>{
+      if(lockReason(d,x)){ skip++; return; }
+      if(on) DB.closed[x][d]=1; else delete DB.closed[x][d];
+      did=true;
+    });
+    if(did) n++;
+  }
+  save(); msg(M,(on?'已停用 ':'已解除停用 ')+n+' 天'+(skip?'，另有 '+skip+' 筆因已有預約或已過去而略過':'')+'。','info');
+  renderAdmin();
+}
+$('#btnClose').onclick=()=>setClosed(true);
+$('#btnReopen').onclick=()=>setClosed(false);
+function renderClosed(){
+  const all=new Set([...Object.keys(DB.closed.love),...Object.keys(DB.closed.clean)]);
+  const list=Array.from(all).filter(d=>d>=today()).sort();
+  $('#closedList').innerHTML= list.length
+    ? '<table><thead><tr><th>日期</th><th>停用項目</th><th></th></tr></thead><tbody>'
+      +list.map(d=>'<tr><td class="num">'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）</td><td>'
+        +(isClosed(d,'love')?'<span class="tag love">愛校服務</span> ':'')
+        +(isClosed(d,'clean')?'<span class="tag clean">補打掃</span>':'')
+        +'</td><td><button class="btn sm flat" data-open="'+d+'">解除</button></td></tr>').join('')+'</tbody></table>'
+    : '<p class="muted">目前沒有停用中的未來日期。</p>';
+  $('#closedList').querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{
+    delete DB.closed.love[b.dataset.open]; delete DB.closed.clean[b.dataset.open];
+    save(); renderAdmin();
+  });
+}
+
+/* ---- 預約管理 ---- */
+function queryRows(){
+  const d=$('#qDate').value, t=$('#qType').value, c=$('#qCls').value.trim();
+  return DB.bookings.filter(b=>b.status==='booked')
+    .filter(b=>(!d||b.date===d)&&(!t||b.type===t))
+    .filter(b=>{ if(!c) return true; const p=person(b.sid); return p&&(p.cls||'').includes(c); })
+    .sort((a,b)=>{ if(a.date!==b.date) return a.date<b.date?-1:1;
+      const A=person(a.sid)||{},B=person(b.sid)||{};
+      return ((A.cls||'')+(A.seat||'')).localeCompare((B.cls||'')+(B.seat||''),'zh-Hant'); });
+}
+function renderQuery(){
+  const list=queryRows(), box=$('#qList');
+  if(!list.length){ box.innerHTML='<p class="muted">沒有符合條件的預約。</p>'; return; }
+  box.innerHTML='<p class="muted">共 '+list.length+' 筆。日期過了會自動釋放名額，不需要做任何登記。</p>'
+    +'<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>核發老師</th><th>班級</th><th>座號</th><th>姓名</th><th>操作</th></tr></thead><tbody>'
+    +list.map(b=>{const p=person(b.sid)||{};
+      return '<tr><td class="num">'+b.date.slice(5).replace('-','/')+'（週'+wd(b.date)+'）</td>'
+        +'<td><span class="tag '+TYPE[b.type].cls+'">'+TYPE[b.type].name+'</span></td>'
+        +'<td>'+esc(b.place)+'</td><td>'+esc(b.teacher||'—')+'</td>'
+        +'<td>'+esc(p.cls||'')+'</td><td class="num">'+esc(p.seat||'')+'</td><td>'+esc(p.name||b.sid)+'</td>'
+        +'<td><button class="btn sm flat" data-del="'+b.id+'">取消</button>'
+        +(b.type==='clean'?' <button class="btn sm" data-done="'+b.id+'">記為完成</button>':'')+'</td></tr>';}).join('')
+    +'</tbody></table></div>';
+  box.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{
+    if(!confirm('取消這筆預約？')) return;
+    const b=DB.bookings.find(y=>y.id===x.dataset.del); if(b) b.status='cancel';
+    save(); renderAdmin();
+  });
+  box.querySelectorAll('[data-done]').forEach(x=>x.onclick=()=>{
+    const b=DB.bookings.find(y=>y.id===x.dataset.done); if(!b) return;
+    const c=DB.students[b.sid]; if(!c){ alert('這位同學不在補打掃名單中。'); return; }
+    c.records=recs(c).concat([{src:'booking',bid:b.id,date:b.date,mark:'',place:b.place}]);
+    b.status='cancel'; save(); renderAdmin();
+  });
+}
+$('#qDate').onchange=renderQuery; $('#qType').onchange=renderQuery; $('#qCls').oninput=renderQuery;
+$('#btnToday').onclick=()=>{ $('#qDate').value=today(); renderQuery(); };
+$('#btnClearQ').onclick=()=>{ $('#qDate').value=''; $('#qType').value=''; $('#qCls').value=''; renderQuery(); };
+
+/* ---- 名單匯入 ---- */
+const FIELDS=[['skip','（不匯入）'],['sid','學號'],['name','姓名'],['cls','班級'],['seat','座號'],
+  ['classNo','班號'],['oldCls','原班級'],['oldSeat','原座號'],['required','應打掃次數'],['date','返掃紀錄欄'],['note','備註']];
+let IMP=null;
+function guess(h){
+  const s=String(h||'').replace(/\s/g,'');
+  if(!s) return 'skip';
+  const old=/1142|原|舊|上學期/.test(s);
+  if(/學號/.test(s)) return 'sid';
+  if(/姓名/.test(s)) return 'name';
+  if(/班級/.test(s)) return old?'oldCls':'cls';
+  if(/座號/.test(s)) return old?'oldSeat':'seat';
+  if(/班號/.test(s)) return old?'skip':'classNo';
+  if(/應.*(打掃|返校|愛校)/.test(s)) return 'required';
+  if(/返掃|返校打掃|打掃日期|第.次/.test(s)) return 'date';
+  if(/備註/.test(s)) return 'note';
+  return 'skip';
+}
+function headerRowOf(rows){
+  for(let i=0;i<Math.min(rows.length,20);i++){
+    const r=rows[i].map(c=>String(c==null?'':c));
+    if(r.some(c=>/姓名/.test(c))&&r.some(c=>/班級|學號/.test(c))) return i;
+  }
+  return 0;
+}
+function handleFile(file){
+  const M=$('#impMsg'); msg(M,'讀取中…','info');
+  const fr=new FileReader();
+  fr.onload=async()=>{
+    try{
+      const sheets=await parseXlsx(fr.result);
+      if(!sheets.length) throw new Error('找不到工作表');
+      IMP={sheets};
+      const sel=$('#impSheet'); sel.innerHTML='';
+      sheets.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=s.name;sel.appendChild(o);});
+      let best=0,bn=-1;
+      sheets.forEach((s,i)=>{const n=s.rows.filter(r=>r.some(c=>c!==null&&c!=='')).length;if(n>bn){bn=n;best=i;}});
+      sel.value=best;
+      msg(M,'已讀取 <b>'+esc(file.name)+'</b>。','info');
+      $('#impStep2').classList.remove('hide'); sheetChanged();
+    }catch(err){ msg(M,'讀取失敗：'+esc(err.message),'err'); }
+  };
+  fr.onerror=()=>msg(M,'檔案讀取失敗。','err');
+  fr.readAsArrayBuffer(file);
+}
+$('#fileXlsx').onchange=e=>{ if(e.target.files[0]) handleFile(e.target.files[0]); e.target.value=''; };
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{
+  e.preventDefault();
+  const f=e.dataTransfer.files[0];
+  if(f&&/\.xlsx$/i.test(f.name)&&SESSION&&SESSION.type==='admin') handleFile(f);
+});
+function sheetChanged(){
+  const sh=IMP.sheets[+$('#impSheet').value];
+  $('#impHeaderRow').value=headerRowOf(sh.rows)+1; buildMap();
+}
+$('#impSheet').onchange=sheetChanged;
+$('#impHeaderRow').onchange=buildMap;
+function headInfo(){
+  const sh=IMP.sheets[+$('#impSheet').value];
+  const hr=Math.max(0,(+$('#impHeaderRow').value||1)-1);
+  const head=sh.rows[hr]||[];
+  let w=head.length;
+  for(let i=hr+1;i<Math.min(sh.rows.length,hr+30);i++) w=Math.max(w,sh.rows[i].length);
+  const out=[];
+  for(let i=0;i<w;i++) out.push(String(head[i]==null?'':head[i]).replace(/[\r\n]+/g,' ').trim());
+  return {sheet:sh,hr,head:out};
+}
+function buildMap(){
+  const {head}=headInfo();
+  $('#impMap').innerHTML=head.map((t,i)=>
+    '<label class="field" style="margin-bottom:0"><span>'+(t?esc(t):'第 '+(i+1)+' 欄（無標題）')+'</span>'
+    +'<select data-col="'+i+'">'+FIELDS.map(f=>'<option value="'+f[0]+'"'+(f[0]===guess(t)?' selected':'')+'>'+f[1]+'</option>').join('')
+    +'</select></label>').join('');
+  $('#impPreview').innerHTML='';
+}
+function readRows(){
+  const {sheet,hr}=headInfo(), map={date:[]};
+  $$('#impMap select').forEach(s=>{
+    const f=s.value,c=+s.dataset.col;
+    if(f==='skip') return;
+    if(f==='date') map.date.push(c); else map[f]=c;
+  });
+  if(map.sid===undefined) throw new Error('必須指定「學號」欄位');
+  const seat=v=>{const s=String(v==null?'':v).trim(); if(!s) return ''; const d=s.replace(/\D/g,''); return d?pad2(String(parseInt(d,10))):s;};
+  const out=[];
+  for(let i=hr+1;i<sheet.rows.length;i++){
+    const r=sheet.rows[i]; if(!r||!r.length) continue;
+    let sid=r[map.sid]; if(sid==null||sid==='') continue;
+    sid=String(typeof sid==='number'?Math.round(sid):sid).trim();
+    if(!/^\d{4,}$/.test(sid)) continue;
+    const txt=c=>{const v=(c===undefined?null:r[c]);return v==null?'':String(v).trim();};
+    const rec=[];
+    map.date.forEach(c=>{
+      let v=r[c]; if(v==null||v==='') return;
+      if(typeof v==='number') v=String(Math.round(v));
+      v=String(v).trim(); if(v) rec.push({src:'import',mark:v,date:markToDate(v),place:''});
+    });
+    out.push({sid,name:txt(map.name),cls:txt(map.cls),seat:seat(txt(map.seat)),classNo:txt(map.classNo),
+      oldCls:txt(map.oldCls),oldSeat:seat(txt(map.oldSeat)),
+      required:map.required===undefined?null:(parseInt(txt(map.required),10)||0),note:txt(map.note),rec});
+  }
+  return out;
+}
+$('#btnCancelImp').onclick=()=>{IMP=null;$('#impStep2').classList.add('hide');msg($('#impMsg'),'');};
+$('#btnPreview').onclick=()=>{
+  const P=$('#impPreview'), target=$('#impTarget').value;
+  try{
+    const rows=readRows();
+    if(!rows.length){ msg(P,'沒有讀到有效資料，請確認標題列與學號欄位。','err'); return; }
+    const store=target==='roster'?DB.roster:DB.students;
+    const exist=rows.filter(r=>store[r.sid]), fresh=rows.filter(r=>!store[r.sid]);
+    const changed=exist.filter(r=>r.cls&&store[r.sid].cls&&store[r.sid].cls!==r.cls);
+    const missing=Object.values(store).filter(s=>!rows.some(r=>r.sid===s.sid));
+    let h='<div class="notice info">讀到 <b>'+rows.length+'</b> 筆：對應到既有名單 <b>'+exist.length+'</b> 筆、新增 <b>'+fresh.length+'</b> 筆。'
+      +(changed.length?'其中 <b>'+changed.length+'</b> 人班級有變動。':'')
+      +(target==='classonly'&&fresh.length?'（此模式下找不到學號的 '+fresh.length+' 筆會略過）':'')+'</div>';
+    if(changed.length){
+      h+='<h3>班級異動核對</h3><div class="scroll"><table><thead><tr><th>學號</th><th>姓名</th><th>原班級座號</th><th>新班級座號</th></tr></thead><tbody>'
+        +changed.slice(0,300).map(r=>{const o=store[r.sid];
+          return '<tr><td class="num">'+esc(r.sid)+'</td><td>'+esc(r.name||o.name)+'</td><td>'+esc((o.cls||'')+' '+(o.seat||''))+'</td><td>'+esc(r.cls+' '+r.seat)+'</td></tr>';}).join('')
+        +'</tbody></table></div>';
+    }
+    if(missing.length) h+='<h3>名單中有、但這份檔案沒有的（'+missing.length+' 人）</h3><p class="muted">'
+      +missing.slice(0,50).map(s=>esc((s.cls||'')+' '+(s.seat||'')+' '+s.name)).join('、')+(missing.length>50?' …':'')+'</p>';
+    h+='<h3>資料預覽（前 10 筆）</h3><div class="scroll"><table><thead><tr><th>學號</th><th>姓名</th><th>班級</th><th>座號</th><th>應打掃</th><th>已登記紀錄</th></tr></thead><tbody>'
+      +rows.slice(0,10).map(r=>'<tr><td class="num">'+esc(r.sid)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.cls)+'</td>'
+        +'<td class="num">'+esc(r.seat)+'</td><td class="num">'+(r.required==null?'—':r.required)+'</td><td>'+esc(r.rec.map(x=>x.mark).join('、')||'—')+'</td></tr>').join('')
+      +'</tbody></table></div><div class="row" style="margin-top:14px"><button class="btn" id="btnApply">確認匯入</button></div>';
+    P.innerHTML=h;
+    $('#btnApply').onclick=()=>applyImport(rows,target);
+  }catch(err){ msg(P,'無法解析：'+esc(err.message),'err'); }
+};
+function applyImport(rows,target){
+  let add=0,upd=0,skip=0;
+  rows.forEach(r=>{
+    if(target==='roster'){
+      const cur=DB.roster[r.sid];
+      if(cur){ if(r.name)cur.name=r.name; if(r.cls)cur.cls=r.cls; if(r.seat)cur.seat=r.seat; upd++; }
+      else{ DB.roster[r.sid]={sid:r.sid,name:r.name,cls:r.cls,seat:r.seat}; add++; }
+      return;
+    }
+    const cur=DB.students[r.sid];
+    if(target==='classonly'){
+      if(!cur){ skip++; return; }
+      if(r.cls&&cur.cls&&cur.cls!==r.cls){ cur.oldCls=cur.cls; cur.oldSeat=cur.seat; }
+      if(r.cls) cur.cls=r.cls;
+      if(r.seat) cur.seat=r.seat;
+      if(r.name) cur.name=r.name;
+      upd++; return;
+    }
+    if(cur){
+      if(r.name)cur.name=r.name;
+      if(r.cls){ if(cur.cls&&cur.cls!==r.cls&&!r.oldCls){cur.oldCls=cur.cls;cur.oldSeat=cur.seat;} cur.cls=r.cls; }
+      if(r.seat)cur.seat=r.seat;
+      if(r.classNo)cur.classNo=r.classNo;
+      if(r.oldCls)cur.oldCls=r.oldCls;
+      if(r.oldSeat)cur.oldSeat=r.oldSeat;
+      if(r.required!=null)cur.required=r.required;
+      if(r.note)cur.note=r.note;
+      cur.records=r.rec.concat(recs(cur).filter(x=>x.src!=='import'));
+      upd++;
+    }else{
+      DB.students[r.sid]={sid:r.sid,name:r.name,cls:r.cls,seat:r.seat,classNo:r.classNo,
+        oldCls:r.oldCls,oldSeat:r.oldSeat,required:r.required||0,note:r.note,records:r.rec};
+      add++;
+    }
+  });
+  save();
+  msg($('#impPreview'),'匯入完成：新增 <b>'+add+'</b> 人、更新 <b>'+upd+'</b> 人'+(skip?'、略過 '+skip+' 筆':'')+'。','info');
+  IMP=null; $('#impStep2').classList.add('hide'); renderAdmin();
+}
+
+/* ---- 學生資料 ---- */
+function store(){ return $('#sSource').value==='roster'?DB.roster:DB.students; }
+function filtered(){
+  const c=$('#sCls').value, k=$('#sKey').value.trim(), u=$('#sUndone').checked, isC=$('#sSource').value==='clean';
+  return Object.values(store()).filter(s=>{
+    if(c&&s.cls!==c) return false;
+    if(k&&!(s.sid.includes(k)||(s.name||'').includes(k))) return false;
+    if(u&&isC&&Math.max(0,(s.required||0)-recs(s).length)<=0) return false;
+    return true;
+  }).sort((a,b)=>((a.cls||'')+(a.seat||'')).localeCompare((b.cls||'')+(b.seat||''),'zh-Hant'));
+}
+function renderStuTable(){
+  const isC=$('#sSource').value==='clean';
+  const cls=new Set(); Object.values(store()).forEach(s=>{if(s.cls)cls.add(s.cls);});
+  const sel=$('#sCls'), keep=sel.value;
+  sel.innerHTML='<option value="">全部</option>'+Array.from(cls).sort().map(c=>'<option>'+esc(c)+'</option>').join('');
+  sel.value=keep;
+  $('#sUndone').parentElement.style.display=isC?'':'none';
+  const list=filtered();
+  $('#sCount').textContent='共 '+list.length+' 人';
+  $('#tblStu').querySelector('thead').innerHTML= isC
+    ? '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>原班級</th><th>應打掃</th><th>已完成</th><th>已預約</th><th>尚需</th><th></th></tr>'
+    : '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>愛校預約</th></tr>';
+  $('#tblStu').querySelector('tbody').innerHTML=list.slice(0,800).map(s=> isC
+    ? '<tr><td>'+esc(s.cls||'')+'</td><td class="num">'+esc(s.seat||'')+'</td><td>'+esc(s.name||'')+'</td><td class="num">'+esc(s.sid)+'</td>'
+      +'<td class="muted">'+esc((s.oldCls||'')+' '+(s.oldSeat||''))+'</td><td class="num">'+(s.required||0)+'</td>'
+      +'<td class="num">'+recs(s).length+'</td><td class="num">'+activeBookings(s.sid,'clean').length+'</td>'
+      +'<td class="num"><b>'+Math.max(0,(s.required||0)-recs(s).length)+'</b></td>'
+      +'<td><button class="btn sm flat" data-ed="'+esc(s.sid)+'">編輯</button></td></tr>'
+    : '<tr><td>'+esc(s.cls||'')+'</td><td class="num">'+esc(s.seat||'')+'</td><td>'+esc(s.name||'')+'</td>'
+      +'<td class="num">'+esc(s.sid)+'</td><td class="num">'+activeBookings(s.sid,'love').length+'</td></tr>').join('');
+  $('#tblStu').querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>editStu(b.dataset.ed));
+}
+['#sSource','#sCls','#sKey','#sUndone'].forEach(id=>{const el=$(id);el.onchange=renderStuTable;el.oninput=renderStuTable;});
+function editStu(sid){
+  const s=DB.students[sid]; if(!s) return;
+  const rs=recs(s);
+  let h='<h3>'+esc(s.name)+'（'+esc(s.sid)+'）</h3>'
+    +'<div class="row" style="align-items:flex-end">'
+    +'<label class="field" style="margin-bottom:0"><span>班級</span><input id="eCls" value="'+esc(s.cls||'')+'" style="width:110px"></label>'
+    +'<label class="field" style="margin-bottom:0"><span>座號</span><input id="eSeat" value="'+esc(s.seat||'')+'" style="width:90px"></label>'
+    +'<label class="field" style="margin-bottom:0"><span>應打掃次數</span><input id="eReq" type="number" min="0" value="'+(s.required||0)+'" style="width:110px"></label>'
+    +'<button class="btn sm" id="eSave">儲存</button></div>'
+    +'<h3 style="margin-top:16px">已完成 '+rs.length+' 次</h3>'
+    +(rs.length?'<table><thead><tr><th>日期／代碼</th><th>地點</th><th>來源</th><th></th></tr></thead><tbody>'
+      +rs.map((r,i)=>'<tr><td class="num">'+esc(recLabel(r))+'</td><td>'+esc(r.place||'—')+'</td>'
+        +'<td>'+(r.src==='import'?'登記表':r.src==='booking'?'預約完成':'人工補登')+'</td>'
+        +'<td><button class="btn sm flat" data-dr="'+i+'">刪除</button></td></tr>').join('')+'</tbody></table>'
+      :'<p class="muted">尚無紀錄。</p>')
+    +'<div class="row" style="margin-top:12px;align-items:flex-end">'
+    +'<label class="field" style="margin-bottom:0"><span>補登日期</span><input type="date" id="eDate" value="'+today()+'"></label>'
+    +'<label class="field" style="margin-bottom:0"><span>地點</span><input id="ePlace" placeholder="選填" style="width:150px"></label>'
+    +'<button class="btn sm" id="eAdd">補登一次</button></div>';
+  openDlg(h);
+  $('#eSave').onclick=()=>{s.cls=$('#eCls').value.trim();s.seat=$('#eSeat').value.trim();
+    s.required=parseInt($('#eReq').value,10)||0;save();$('#dlg').close();renderAdmin();};
+  $('#eAdd').onclick=()=>{s.records=recs(s).concat([{src:'manual',date:$('#eDate').value,mark:'',place:$('#ePlace').value.trim()}]);
+    save();editStu(sid);renderStuTable();};
+  $('#dlgBody').querySelectorAll('[data-dr]').forEach(b=>b.onclick=()=>{
+    s.records.splice(+b.dataset.dr,1); save(); editStu(sid); renderStuTable();
+  });
+}
+
+/* ---- 管理員 ---- */
+function renderAccounts(){
+  $('#acList').innerHTML='<table><thead><tr><th>帳號</th><th>顯示名稱</th><th>建立日期</th><th></th></tr></thead><tbody>'
+    +DB.admins.map(a=>'<tr><td>'+esc(a.user)+'</td><td>'+esc(a.disp||'')+'</td><td class="num">'+esc(a.created||'')+'</td><td>'
+      +(a.user===SESSION.user?'<span class="muted">登入中</span>':'<button class="btn sm flat" data-rm="'+esc(a.user)+'">刪除</button>')
+      +'</td></tr>').join('')+'</tbody></table>';
+  $('#acList').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{
+    if(DB.admins.length<=1){ msg($('#acMsg'),'至少要保留一位管理員。','warn'); return; }
+    if(!confirm('刪除管理員 '+b.dataset.rm+'？')) return;
+    DB.admins=DB.admins.filter(a=>a.user!==b.dataset.rm); save(); renderAccounts();
+  });
+}
+$('#btnAddAdm').onclick=()=>{
+  const u=$('#newUser').value.trim(), d=$('#newDisp').value.trim(), p=$('#newPass').value, M=$('#acMsg');
+  if(!u||!p){ msg(M,'帳號與密碼為必填。','warn'); return; }
+  if(p.length<6){ msg(M,'密碼至少 6 碼。','warn'); return; }
+  if(DB.admins.some(a=>a.user===u)){ msg(M,'這個帳號已經存在。','err'); return; }
+  DB.admins.push({user:u,disp:d,hash:hashPw(u,p),created:today()});
+  save(); $('#newUser').value='';$('#newDisp').value='';$('#newPass').value='';
+  msg(M,'已新增管理員 '+esc(u)+'。','info'); renderAccounts();
+};
+$('#btnChgPass').onclick=()=>{
+  const a=DB.admins.find(x=>x.user===SESSION.user), M=$('#pwMsg');
+  if(!a) return;
+  if(a.hash!==hashPw(a.user,$('#oldPass').value)){ msg(M,'目前密碼不正確。','err'); return; }
+  const n=$('#chgPass').value;
+  if(n.length<6){ msg(M,'新密碼至少 6 碼。','warn'); return; }
+  a.hash=hashPw(a.user,n); save(); $('#oldPass').value='';$('#chgPass').value='';
+  msg(M,'密碼已更新。','info');
+};
+
+/* ---- 備份與設定 ---- */
+function dl(blob,name){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+}
+$('#btnBackupJson').onclick=()=>{
+  DB.lastBackup=new Date().toISOString(); save();
+  dl(new Blob([JSON.stringify(DB)],{type:'application/json'}),'補掃愛校備份_'+today()+'.json');
+  msg($('#dataMsg'),'JSON 備份已下載，請存到雲端硬碟或隨身碟。','info'); backupHint();
+};
+$('#btnBackupXlsx').onclick=()=>{
+  const love=[['日期','星期','時段','地點','核發教師','科目','班級','座號','姓名','學號','登記時間']];
+  const clean=[['日期','星期','時段','地點','班級','座號','姓名','學號','應打掃','已完成','尚需']];
+  DB.bookings.filter(b=>b.status==='booked').sort((a,b)=>a.date<b.date?-1:1).forEach(b=>{
+    const p=person(b.sid)||{};
+    if(b.type==='love') love.push([b.date,wd(b.date),b.slot,b.place,b.teacher||'',b.subject||'',
+      p.cls||'',p.seat||'',p.name||'',b.sid,(b.created||'').slice(0,16).replace('T',' ')]);
+    else{ const c=DB.students[b.sid]||{};
+      clean.push([b.date,wd(b.date),b.slot,b.place,p.cls||'',p.seat||'',p.name||'',b.sid,
+        c.required||0,recs(c).length,Math.max(0,(c.required||0)-recs(c).length)]); }
+  });
+  const roster=[['班級','座號','姓名','學號']];
+  Object.values(DB.roster).sort((a,b)=>((a.cls||'')+(a.seat||'')).localeCompare((b.cls||'')+(b.seat||''),'zh-Hant'))
+    .forEach(s=>roster.push([s.cls||'',s.seat||'',s.name||'',s.sid]));
+  const cl=[['班級','座號','姓名','學號','原班級','應打掃','已完成','尚需','完成紀錄']];
+  Object.values(DB.students).sort((a,b)=>((a.cls||'')+(a.seat||'')).localeCompare((b.cls||'')+(b.seat||''),'zh-Hant'))
+    .forEach(s=>cl.push([s.cls||'',s.seat||'',s.name||'',s.sid,s.oldCls||'',s.required||0,recs(s).length,
+      Math.max(0,(s.required||0)-recs(s).length),recs(s).map(recLabel).join(' ')]));
+  const x=buildXlsx([{name:'愛校預約',rows:love},{name:'補打掃',rows:clean},
+    {name:'補打掃名單',rows:cl},{name:'全校名單',rows:roster}]);
+  dl(new Blob([x],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'補掃愛校名單_'+today()+'.xlsx');
+  msg($('#dataMsg'),'Excel 已下載（4 個分頁）。這份不能倒回系統，還原請用 JSON。','info');
+};
+$('#fileRestore').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const fr=new FileReader();
+  fr.onload=()=>{
+    try{
+      const d=JSON.parse(fr.result);
+      if(!d.settings||!(d.students||d.roster)) throw new Error('格式不符');
+      if(!confirm('還原會覆蓋目前所有資料，確定嗎？')) return;
+      DB=d; fill(DB,defaultDB()); save();
+      msg($('#dataMsg'),'已還原備份。','info'); renderAdmin();
+    }catch(err){ msg($('#dataMsg'),'還原失敗：'+esc(err.message),'err'); }
+  };
+  fr.readAsText(f); e.target.value='';
+};
+$('#btnSaveSet').onclick=()=>{
+  const sl=$('#setSlot').value.trim(); if(sl) DB.settings.slot=sl;
+  DB.settings.loveMax=Math.max(1,parseInt($('#setMax').value,10)||3);
+  DB.settings.idle=Math.max(0,parseInt($('#setIdle').value,10)||0);
+  DB.settings.startYear=parseInt($('#setYear').value,10)||DB.settings.startYear;
+  save(); msg($('#dataMsg'),'設定已儲存。','info'); renderAdmin();
+};
+$('#btnClearBk').onclick=()=>{
+  if(!confirm('清除所有預約紀錄？（名單與打掃紀錄會保留）')) return;
+  DB.bookings=[]; save(); msg($('#dataMsg'),'預約已清除。','info'); renderAdmin();
+};
+$('#btnClearAll').onclick=()=>{
+  if(!confirm('這會刪除名單、預約、需求與管理員帳號，確定嗎？')) return;
+  if(!confirm('再次確認：所有資料將無法復原。建議先下載 JSON 備份。')) return;
+  DB=defaultDB(); save(); gate();
+};
+
+/* ---- 啟動 ---- */
+load();
+$('#dDate').value=today(); $('#bFrom').value=today(); $('#cFrom').value=today();
+const nx=new Date(); nx.setDate(nx.getDate()+14); $('#bTo').value=ymd(nx);
+gate();
+})();
+</script>
+</body>
+</html>
