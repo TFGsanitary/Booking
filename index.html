@@ -501,11 +501,16 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
       <div id="acList" style="margin-top:14px"></div>
     </div>
     <div class="card">
-      <h2>修改自己的密碼</h2>
-      <div class="row" style="align-items:flex-end">
-        <label class="field" style="margin-bottom:0"><span>目前密碼</span><input id="oldPass" type="password" style="width:175px"></label>
-        <label class="field" style="margin-bottom:0"><span>新密碼</span><input id="chgPass" type="password" style="width:175px"></label>
-        <button class="btn" id="btnChgPass">更新密碼</button>
+      <h2>我的帳號</h2>
+      <p class="muted" style="margin-top:0">可以修改自己的帳號名稱、顯示名稱與密碼。因為密碼與帳號是綁在一起加密的，任何修改都必須輸入目前的密碼。</p>
+      <div class="row" style="align-items:flex-end;margin-top:14px">
+        <label class="field" style="margin-bottom:0"><span>帳號</span><input id="myUser" autocomplete="off" style="width:175px"></label>
+        <label class="field" style="margin-bottom:0"><span>顯示名稱</span><input id="myDisp" placeholder="例如 王小明" style="width:175px"></label>
+      </div>
+      <div class="row" style="align-items:flex-end;margin-top:14px">
+        <label class="field" style="margin-bottom:0"><span>目前密碼（必填）</span><input id="oldPass" type="password" autocomplete="current-password" style="width:190px"></label>
+        <label class="field" style="margin-bottom:0"><span>新密碼（不改就留空）</span><input id="chgPass" type="password" autocomplete="new-password" style="width:190px"></label>
+        <button class="btn" id="btnChgPass">儲存變更</button>
       </div>
       <div id="pwMsg" style="margin-top:14px"></div>
     </div>
@@ -814,6 +819,18 @@ function leftClean(sid){
   return Math.max(0,(c.required||0)-recs(c).length-activeBookings(sid,'clean').length);
 }
 const isClosed=(d,t)=>!!(DB.closed[t]&&DB.closed[t][d]);
+/* 時段開始時間（分鐘）。過了今天的時段就從明天算起 */
+function slotStartMin(){
+  const m=/(\d{1,2})\s*:\s*(\d{2})/.exec(DB.settings.slot||'');
+  return m?(+m[1]*60 + +m[2]):0;
+}
+function minBookDate(){
+  const n=new Date();
+  if(n.getHours()*60+n.getMinutes()>=slotStartMin()){
+    const d=new Date(n); d.setDate(d.getDate()+1); return ymd(d);
+  }
+  return today();
+}
 const demandsOf=(d,t)=>(DB.demands[d]||[]).filter(x=>!t||x.type===t);
 const bookedOn=(d,did)=>DB.bookings.filter(b=>b.date===d&&b.status==='booked'&&(did===undefined||b.did===did)).length;
 const bookedType=(d,t)=>DB.bookings.filter(b=>b.date===d&&b.status==='booked'&&b.type===t).length;
@@ -828,7 +845,7 @@ function lockReason(d,t){
   return '';
 }
 function openDatesFor(t){
-  const td=today();
+  const td=minBookDate();
   return Object.keys(DB.demands).filter(d=>d>=td&&dayOpenFor(d,t)).sort().slice(0,120);
 }
 function markToDate(mk){
@@ -976,7 +993,8 @@ function book(type){
   const d=$(type==='love'?'#loveDate':'#cleanDate').value;
   const did=$(type==='love'?'#lovePlace':'#cleanPlace').value;
   if(!d||!did){ msg(M,'請先選擇日期與地點。','warn'); return; }
-  if(d<today()){ msg(M,'不能預約已經過去的日期。','err'); return; }
+  if(d<minBookDate()){
+    msg(M, d<today()?'不能預約已經過去的日期。':'今天的時段已經開始，請改約明天以後。','err'); return; }
   if(isClosed(d,type)||!demandsOf(d,type).length){ msg(M,'這一天不開放預約。','err'); return; }
   if(type==='love'&&activeBookings(SESSION.sid,'love').length>=DB.settings.loveMax){
     msg(M,'你已經排滿 '+DB.settings.loveMax+' 場，完成後才能再排。','warn'); return; }
@@ -1036,7 +1054,7 @@ function drawCal(grid,titleEl,ym,mode){
     const dt=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);
     const d=ymd(dt), out=dt.getMonth()!==ym.m;
     const bs=DB.bookings.filter(b=>b.date===d&&b.status==='booked');
-    const someOpen=['love','clean'].some(t=>demandsOf(d,t).length>0&&!isClosed(d,t));
+    const someOpen=d>=minBookDate()&&['love','clean'].some(t=>demandsOf(d,t).length>0&&!isClosed(d,t));
     let cls='day'+(out?' out':'')+(someOpen?' open':'')+(d===today()?' today':'');
     const ents=bs.slice(0,6).map(b=>{
       const p=person(b.sid);
@@ -1050,6 +1068,8 @@ function drawCal(grid,titleEl,ym,mode){
 function dayInfo(d,mode){
   const bs=DB.bookings.filter(x=>x.date===d&&x.status==='booked');
   let h='<h3>'+d.replace(/-/g,'/')+'（週'+wd(d)+'）</h3>';
+  if(d<today()) h+='<p class="muted">這一天已經過去，不能再預約。</p>';
+  else if(d<minBookDate()) h+='<p class="muted">今天的時段已經開始，不能再預約。</p>';
   ['love','clean'].forEach(t=>{
     const dm=demandsOf(d,t);
     if(!dm.length&&!isClosed(d,t)&&mode!=='adm') return;
@@ -1598,6 +1618,10 @@ function editStu(sid){
 
 /* ---- 管理員 ---- */
 function renderAccounts(){
+  const me=DB.admins.find(x=>x.user===SESSION.user);
+  if(me&&document.activeElement!==$('#myUser')&&document.activeElement!==$('#myDisp')){
+    $('#myUser').value=me.user; $('#myDisp').value=me.disp||'';
+  }
   $('#acList').innerHTML='<table><thead><tr><th>帳號</th><th>顯示名稱</th><th>建立日期</th><th></th></tr></thead><tbody>'
     +DB.admins.map(a=>'<tr><td>'+esc(a.user)+'</td><td>'+esc(a.disp||'')+'</td><td class="num">'+esc(a.created||'')+'</td><td>'
       +(a.user===SESSION.user?'<span class="muted">登入中</span>':'<button class="btn sm flat" data-rm="'+esc(a.user)+'">刪除</button>')
@@ -1620,11 +1644,28 @@ $('#btnAddAdm').onclick=()=>{
 $('#btnChgPass').onclick=()=>{
   const a=DB.admins.find(x=>x.user===SESSION.user), M=$('#pwMsg');
   if(!a) return;
-  if(a.hash!==hashPw(a.user,$('#oldPass').value)){ msg(M,'目前密碼不正確。','err'); return; }
-  const n=$('#chgPass').value;
-  if(n.length<6){ msg(M,'新密碼至少 6 碼。','warn'); return; }
-  a.hash=hashPw(a.user,n); save(); $('#oldPass').value='';$('#chgPass').value='';
-  msg(M,'密碼已更新。','info');
+  const cur=$('#oldPass').value;
+  if(!cur){ msg(M,'請輸入目前的密碼。','warn'); return; }
+  if(a.hash!==hashPw(a.user,cur)){ msg(M,'目前密碼不正確。','err'); return; }
+  const nu=$('#myUser').value.trim(), nd=$('#myDisp').value.trim(), np=$('#chgPass').value;
+  if(!nu){ msg(M,'帳號不能空白。','warn'); return; }
+  if(/\s/.test(nu)){ msg(M,'帳號不能有空白字元。','warn'); return; }
+  if(nu!==a.user&&DB.admins.some(x=>x.user===nu)){ msg(M,'「'+esc(nu)+'」已經有人使用了，請換一個。','err'); return; }
+  if(np&&np.length<6){ msg(M,'新密碼至少 6 碼。','warn'); return; }
+  const old=a.user, changed=[];
+  if(nu!==old) changed.push('帳號改為「'+esc(nu)+'」');
+  if(nd!==(a.disp||'')) changed.push('顯示名稱已更新');
+  if(np) changed.push('密碼已更新');
+  if(!changed.length){ msg(M,'沒有任何變更。','warn'); return; }
+  a.user=nu; a.disp=nd;
+  a.hash=hashPw(nu,np||cur);
+  if(nu!==old) Object.keys(DB.demands).forEach(d=>DB.demands[d].forEach(x=>{ if(x.by===old) x.by=nu; }));
+  SESSION.user=nu;
+  save();
+  $('#oldPass').value=''; $('#chgPass').value='';
+  $('#whoText').textContent='管理者　'+(a.disp||a.user);
+  msg(M,changed.join('，')+'。'+(nu!==old?'下次請用新帳號登入。':''),'info');
+  renderAccounts();
 };
 
 /* ---- 備份與設定 ---- */
