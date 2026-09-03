@@ -455,9 +455,11 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
     </div>
     <div class="card hide" id="impStep2">
       <h2>確認欄位對應</h2>
+      <p class="muted" style="margin-top:0">勾選要匯入的工作表，可一次匯入多個年級。</p>
+      <div class="wdays" id="impSheets" style="margin-bottom:14px"></div>
       <div class="row" style="margin-bottom:14px">
-        <label class="field" style="margin-bottom:0"><span>工作表</span><select id="impSheet"></select></label>
         <label class="field" style="margin-bottom:0"><span>標題列</span><input id="impHeaderRow" type="number" min="1" style="width:118px"></label>
+        <span class="muted" id="impHeadNote"></span>
       </div>
       <div class="mapgrid" id="impMap"></div>
       <div class="row" style="margin-top:18px">
@@ -478,7 +480,9 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
         <label class="field" style="margin-bottom:0"><span>搜尋</span><input id="sKey" placeholder="學號或姓名" style="width:175px"></label>
         <label class="muted" style="display:flex;align-items:center;gap:7px;font-weight:600"><input type="checkbox" id="sUndone"> 只看未完成</label>
         <span class="muted" id="sCount"></span>
+        <button class="btn sm warn" id="btnClearList" style="margin-left:auto">清空這份名單</button>
       </div>
+      <div id="sMsg"></div>
       <div class="scroll"><table id="tblStu"><thead></thead><tbody></tbody></table></div>
     </div>
   </div>
@@ -531,6 +535,11 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
         <label class="field" style="margin-bottom:0"><span>舊紀錄年份（702→7月）</span><input type="number" id="setYear" style="width:140px"></label>
         <button class="btn" id="btnSaveSet">儲存設定</button>
       </div>
+    </div>
+    <div class="card">
+      <h2>復原</h2>
+      <p class="muted" style="margin-top:0">匯入錯檔案、或刪錯名單時，可以退回上一步。只保留最近一次，且不影響預約紀錄。</p>
+      <div id="undoBox"></div>
     </div>
     <div class="card">
       <h2>清除資料</h2>
@@ -1094,7 +1103,7 @@ $('#admTabs').addEventListener('click',e=>{
   renderAdmin();
 });
 function renderAdmin(){
-  backupHint(); renderDemands(); renderClosed(); renderQuery(); renderStuTable(); renderAccounts();
+  backupHint(); renderDemands(); renderClosed(); renderQuery(); renderStuTable(); renderAccounts(); renderUndoBox();
   $('#wdays').innerHTML=[1,2,3,4,5,6,0].map(i=>'<label><input type="checkbox" value="'+i+'"'
     +(DB.settings.days.indexOf(i)>=0?' checked':'')+'>週'+WD[i]+'</label>').join('');
   $('#setSlot').value=DB.settings.slot;
@@ -1272,10 +1281,18 @@ function guess(h){
 }
 function headerRowOf(rows){
   for(let i=0;i<Math.min(rows.length,20);i++){
-    const r=rows[i].map(c=>String(c==null?'':c));
+    const r=(rows[i]||[]).map(c=>String(c==null?'':c));
     if(r.some(c=>/姓名/.test(c))&&r.some(c=>/班級|學號/.test(c))) return i;
   }
   return 0;
+}
+function dataRowCount(sh){ return sh.rows.filter(r=>r.some(c=>c!==null&&c!=='')).length; }
+/* 只有看起來像名單的分頁才預設勾選 */
+function looksLikeRoster(sh){
+  const hr=headerRowOf(sh.rows), r=(sh.rows[hr]||[]).map(c=>String(c==null?'':c));
+  if(!r.some(c=>/姓名/.test(c))) return false;
+  if(!r.some(c=>/學號/.test(c))) return false;
+  return sh.rows.slice(hr+1).some(row=>row.some(c=>/^\d{4,}$/.test(String(c==null?'':c).trim())));
 }
 function handleFile(file){
   const M=$('#impMsg'); msg(M,'讀取中…','info');
@@ -1284,13 +1301,14 @@ function handleFile(file){
     try{
       const sheets=await parseXlsx(fr.result);
       if(!sheets.length) throw new Error('找不到工作表');
-      IMP={sheets};
-      const sel=$('#impSheet'); sel.innerHTML='';
-      sheets.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=s.name;sel.appendChild(o);});
-      let best=0,bn=-1;
-      sheets.forEach((s,i)=>{const n=s.rows.filter(r=>r.some(c=>c!==null&&c!=='')).length;if(n>bn){bn=n;best=i;}});
-      sel.value=best;
-      msg(M,'已讀取 <b>'+esc(file.name)+'</b>。','info');
+      IMP={sheets,file:file.name};
+      $('#impSheets').innerHTML=sheets.map((sh,i)=>{
+        const n=dataRowCount(sh), ok=looksLikeRoster(sh);
+        return '<label'+(ok?'':' style="opacity:.6"')+'><input type="checkbox" value="'+i+'"'+(ok?' checked':'')+'>'
+          +esc(sh.name)+'（'+n+' 列'+(ok?'':'・非名單格式')+'）</label>';
+      }).join('');
+      $$('#impSheets input').forEach(c=>c.onchange=sheetChanged);
+      msg(M,'已讀取 <b>'+esc(file.name)+'</b>，共 '+sheets.length+' 個工作表。','info');
       $('#impStep2').classList.remove('hide'); sheetChanged();
     }catch(err){ msg(M,'讀取失敗：'+esc(err.message),'err'); }
   };
@@ -1304,42 +1322,45 @@ document.addEventListener('drop',e=>{
   const f=e.dataTransfer.files[0];
   if(f&&/\.xlsx$/i.test(f.name)&&SESSION&&SESSION.type==='admin') handleFile(f);
 });
+function picked(){ return $$('#impSheets input:checked').map(x=>+x.value); }
+function primary(){ const a=picked(); return a.length?a[0]:0; }
 function sheetChanged(){
-  const sh=IMP.sheets[+$('#impSheet').value];
-  $('#impHeaderRow').value=headerRowOf(sh.rows)+1; buildMap();
+  const sel=picked(), multi=sel.length>1;
+  const hr=$('#impHeaderRow');
+  hr.disabled=multi;
+  hr.value=IMP.sheets[primary()]?headerRowOf(IMP.sheets[primary()].rows)+1:1;
+  $('#impHeadNote').textContent = multi
+    ? '選了多個工作表，各分頁的標題列會自動偵測，欄位對應依標題名稱套用。'
+    : '';
+  buildMap();
 }
-$('#impSheet').onchange=sheetChanged;
 $('#impHeaderRow').onchange=buildMap;
-function headInfo(){
-  const sh=IMP.sheets[+$('#impSheet').value];
-  const hr=Math.max(0,(+$('#impHeaderRow').value||1)-1);
+function headInfo(idx,useManual){
+  const sh=IMP.sheets[idx];
+  let hr=headerRowOf(sh.rows);
+  if(useManual){ const v=parseInt($('#impHeaderRow').value,10); if(v>0) hr=v-1; }
   const head=sh.rows[hr]||[];
   let w=head.length;
-  for(let i=hr+1;i<Math.min(sh.rows.length,hr+30);i++) w=Math.max(w,sh.rows[i].length);
+  for(let i=hr+1;i<Math.min(sh.rows.length,hr+30);i++) w=Math.max(w,(sh.rows[i]||[]).length);
   const out=[];
   for(let i=0;i<w;i++) out.push(String(head[i]==null?'':head[i]).replace(/[\r\n]+/g,' ').trim());
   return {sheet:sh,hr,head:out};
 }
 function buildMap(){
-  const {head}=headInfo();
+  if(!IMP||!picked().length){ $('#impMap').innerHTML='<p class="muted">請至少勾選一個工作表。</p>'; return; }
+  const {head}=headInfo(primary(),picked().length===1);
   $('#impMap').innerHTML=head.map((t,i)=>
     '<label class="field" style="margin-bottom:0"><span>'+(t?esc(t):'第 '+(i+1)+' 欄（無標題）')+'</span>'
     +'<select data-col="'+i+'">'+FIELDS.map(f=>'<option value="'+f[0]+'"'+(f[0]===guess(t)?' selected':'')+'>'+f[1]+'</option>').join('')
     +'</select></label>').join('');
   $('#impPreview').innerHTML='';
 }
-function readRows(){
-  const {sheet,hr}=headInfo(), map={date:[]};
-  $$('#impMap select').forEach(s=>{
-    const f=s.value,c=+s.dataset.col;
-    if(f==='skip') return;
-    if(f==='date') map.date.push(c); else map[f]=c;
-  });
-  if(map.sid===undefined) throw new Error('必須指定「學號」欄位');
-  const seat=v=>{const s=String(v==null?'':v).trim(); if(!s) return ''; const d=s.replace(/\D/g,''); return d?pad2(String(parseInt(d,10))):s;};
+const seatNorm=v=>{const s=String(v==null?'':v).trim(); if(!s) return ''; const d=s.replace(/\D/g,''); return d?pad2(String(parseInt(d,10))):s;};
+function rowsFromSheet(idx,map,sheetName){
+  const info=headInfo(idx,picked().length===1&&idx===primary());
   const out=[];
-  for(let i=hr+1;i<sheet.rows.length;i++){
-    const r=sheet.rows[i]; if(!r||!r.length) continue;
+  for(let i=info.hr+1;i<info.sheet.rows.length;i++){
+    const r=info.sheet.rows[i]; if(!r||!r.length) continue;
     let sid=r[map.sid]; if(sid==null||sid==='') continue;
     sid=String(typeof sid==='number'?Math.round(sid):sid).trim();
     if(!/^\d{4,}$/.test(sid)) continue;
@@ -1350,23 +1371,57 @@ function readRows(){
       if(typeof v==='number') v=String(Math.round(v));
       v=String(v).trim(); if(v) rec.push({src:'import',mark:v,date:markToDate(v),place:''});
     });
-    out.push({sid,name:txt(map.name),cls:txt(map.cls),seat:seat(txt(map.seat)),classNo:txt(map.classNo),
-      oldCls:txt(map.oldCls),oldSeat:seat(txt(map.oldSeat)),
-      required:map.required===undefined?null:(parseInt(txt(map.required),10)||0),note:txt(map.note),rec});
+    out.push({sid,name:txt(map.name),cls:txt(map.cls),seat:seatNorm(txt(map.seat)),classNo:txt(map.classNo),
+      oldCls:txt(map.oldCls),oldSeat:seatNorm(txt(map.oldSeat)),
+      required:map.required===undefined?null:(parseInt(txt(map.required),10)||0),
+      note:txt(map.note),rec,from:sheetName});
   }
   return out;
+}
+function readRows(){
+  const sel=picked();
+  if(!sel.length) throw new Error('請至少勾選一個工作表');
+  const p=primary(), single=sel.length===1;
+  const uiMap={}, labelMap={};
+  $$('#impMap select').forEach(x=>{ uiMap[+x.dataset.col]=x.value; });
+  const pHead=headInfo(p,single).head;
+  pHead.forEach((lab,i)=>{ if(lab) labelMap[lab]=uiMap[i]||'skip'; });
+  const all=[], seen={}; let dup=0;
+  sel.forEach(idx=>{
+    const info=headInfo(idx,single&&idx===p);
+    const map={date:[]};
+    info.head.forEach((lab,i)=>{
+      let f = (idx===p) ? (uiMap[i]||'skip')
+            : (lab&&labelMap[lab]!==undefined ? labelMap[lab] : guess(lab));
+      if(f==='skip') return;
+      if(f==='date') map.date.push(i);
+      else if(map[f]===undefined) map[f]=i;
+    });
+    if(map.sid===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到「學號」欄位，請確認標題列');
+    rowsFromSheet(idx,map,info.sheet.name).forEach(r=>{
+      if(seen[r.sid]){ dup++; return; }
+      seen[r.sid]=1; all.push(r);
+    });
+  });
+  all.dup=dup; all.sheets=sel.length;
+  return all;
 }
 $('#btnCancelImp').onclick=()=>{IMP=null;$('#impStep2').classList.add('hide');msg($('#impMsg'),'');};
 $('#btnPreview').onclick=()=>{
   const P=$('#impPreview'), target=$('#impTarget').value;
   try{
     const rows=readRows();
-    if(!rows.length){ msg(P,'沒有讀到有效資料，請確認標題列與學號欄位。','err'); return; }
+    if(!rows.length){ msg(P,'沒有讀到有效資料，請確認勾選的工作表與標題列。','err'); return; }
     const store=target==='roster'?DB.roster:DB.students;
     const exist=rows.filter(r=>store[r.sid]), fresh=rows.filter(r=>!store[r.sid]);
     const changed=exist.filter(r=>r.cls&&store[r.sid].cls&&store[r.sid].cls!==r.cls);
     const missing=Object.values(store).filter(s=>!rows.some(r=>r.sid===s.sid));
-    let h='<div class="notice info">讀到 <b>'+rows.length+'</b> 筆：對應到既有名單 <b>'+exist.length+'</b> 筆、新增 <b>'+fresh.length+'</b> 筆。'
+    const bySheet={};
+    rows.forEach(r=>{bySheet[r.from]=(bySheet[r.from]||0)+1;});
+    let h='<div class="notice info">讀到 <b>'+rows.length+'</b> 筆'
+      +(rows.sheets>1?'（'+Object.keys(bySheet).map(k=>esc(k)+' '+bySheet[k]+' 筆').join('、')+'）':'')
+      +'：對應到既有名單 <b>'+exist.length+'</b> 筆、新增 <b>'+fresh.length+'</b> 筆。'
+      +(rows.dup?'另有 '+rows.dup+' 筆學號重複已略過。':'')
       +(changed.length?'其中 <b>'+changed.length+'</b> 人班級有變動。':'')
       +(target==='classonly'&&fresh.length?'（此模式下找不到學號的 '+fresh.length+' 筆會略過）':'')+'</div>';
     if(changed.length){
@@ -1377,15 +1432,30 @@ $('#btnPreview').onclick=()=>{
     }
     if(missing.length) h+='<h3>名單中有、但這份檔案沒有的（'+missing.length+' 人）</h3><p class="muted">'
       +missing.slice(0,50).map(s=>esc((s.cls||'')+' '+(s.seat||'')+' '+s.name)).join('、')+(missing.length>50?' …':'')+'</p>';
-    h+='<h3>資料預覽（前 10 筆）</h3><div class="scroll"><table><thead><tr><th>學號</th><th>姓名</th><th>班級</th><th>座號</th><th>應打掃</th><th>已登記紀錄</th></tr></thead><tbody>'
-      +rows.slice(0,10).map(r=>'<tr><td class="num">'+esc(r.sid)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.cls)+'</td>'
+    h+='<h3>資料預覽（前 10 筆）</h3><div class="scroll"><table><thead><tr><th>來源分頁</th><th>學號</th><th>姓名</th><th>班級</th><th>座號</th><th>應打掃</th><th>已登記紀錄</th></tr></thead><tbody>'
+      +rows.slice(0,10).map(r=>'<tr><td class="muted">'+esc(r.from)+'</td><td class="num">'+esc(r.sid)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.cls)+'</td>'
         +'<td class="num">'+esc(r.seat)+'</td><td class="num">'+(r.required==null?'—':r.required)+'</td><td>'+esc(r.rec.map(x=>x.mark).join('、')||'—')+'</td></tr>').join('')
       +'</tbody></table></div><div class="row" style="margin-top:14px"><button class="btn" id="btnApply">確認匯入</button></div>';
     P.innerHTML=h;
     $('#btnApply').onclick=()=>applyImport(rows,target);
   }catch(err){ msg(P,'無法解析：'+esc(err.message),'err'); }
 };
+function snapshot(label){
+  DB.undo={ts:new Date().toISOString(),label,
+    students:JSON.parse(JSON.stringify(DB.students)),
+    roster:JSON.parse(JSON.stringify(DB.roster))};
+}
+function undoAvailable(){ return DB.undo&&DB.undo.ts; }
+function doUndo(){
+  if(!undoAvailable()) return;
+  if(!confirm('要復原到「'+DB.undo.label+'」之前的名單狀態嗎？\n（預約紀錄不受影響）')) return;
+  DB.students=DB.undo.students; DB.roster=DB.undo.roster; DB.undo=null;
+  save(); renderAdmin();
+  msg($('#dataMsg'),'已復原名單。','info');
+  msg($('#impPreview'),'已復原到匯入前的名單。','info');
+}
 function applyImport(rows,target){
+  snapshot('匯入 '+(IMP?IMP.file:'名單'));
   let add=0,upd=0,skip=0;
   rows.forEach(r=>{
     if(target==='roster'){
@@ -1421,7 +1491,11 @@ function applyImport(rows,target){
     }
   });
   save();
-  msg($('#impPreview'),'匯入完成：新增 <b>'+add+'</b> 人、更新 <b>'+upd+'</b> 人'+(skip?'、略過 '+skip+' 筆':'')+'。','info');
+  $('#impPreview').innerHTML='<div class="notice info">匯入完成：新增 <b>'+add+'</b> 人、更新 <b>'+upd+'</b> 人'
+    +(skip?'、略過 '+skip+' 筆':'')+'。</div>'
+    +'<p class="muted">匯錯了嗎？可以馬上復原到匯入前的狀態。</p>'
+    +'<button class="btn warn" id="btnUndoImp">復原這次匯入</button>';
+  $('#btnUndoImp').onclick=doUndo;
   IMP=null; $('#impStep2').classList.add('hide'); renderAdmin();
 }
 
@@ -1446,19 +1520,53 @@ function renderStuTable(){
   const list=filtered();
   $('#sCount').textContent='共 '+list.length+' 人';
   $('#tblStu').querySelector('thead').innerHTML= isC
-    ? '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>原班級</th><th>應打掃</th><th>已完成</th><th>已預約</th><th>尚需</th><th></th></tr>'
-    : '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>愛校預約</th></tr>';
+    ? '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>原班級</th><th>應打掃</th><th>已完成</th><th>已預約</th><th>尚需</th><th>操作</th></tr>'
+    : '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>愛校預約</th><th>操作</th></tr>';
   $('#tblStu').querySelector('tbody').innerHTML=list.slice(0,800).map(s=> isC
     ? '<tr><td>'+esc(s.cls||'')+'</td><td class="num">'+esc(s.seat||'')+'</td><td>'+esc(s.name||'')+'</td><td class="num">'+esc(s.sid)+'</td>'
       +'<td class="muted">'+esc((s.oldCls||'')+' '+(s.oldSeat||''))+'</td><td class="num">'+(s.required||0)+'</td>'
       +'<td class="num">'+recs(s).length+'</td><td class="num">'+activeBookings(s.sid,'clean').length+'</td>'
       +'<td class="num"><b>'+Math.max(0,(s.required||0)-recs(s).length)+'</b></td>'
-      +'<td><button class="btn sm flat" data-ed="'+esc(s.sid)+'">編輯</button></td></tr>'
+      +'<td><button class="btn sm flat" data-ed="'+esc(s.sid)+'">編輯</button> '
+      +'<button class="btn sm flat" data-rmstu="'+esc(s.sid)+'">刪除</button></td></tr>'
     : '<tr><td>'+esc(s.cls||'')+'</td><td class="num">'+esc(s.seat||'')+'</td><td>'+esc(s.name||'')+'</td>'
-      +'<td class="num">'+esc(s.sid)+'</td><td class="num">'+activeBookings(s.sid,'love').length+'</td></tr>').join('');
+      +'<td class="num">'+esc(s.sid)+'</td><td class="num">'+activeBookings(s.sid,'love').length+'</td>'
+      +'<td><button class="btn sm flat" data-rmstu="'+esc(s.sid)+'">刪除</button></td></tr>').join('');
   $('#tblStu').querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>editStu(b.dataset.ed));
+  $('#tblStu').querySelectorAll('[data-rmstu]').forEach(b=>b.onclick=()=>removeStudent(b.dataset.rmstu));
 }
 ['#sSource','#sCls','#sKey','#sUndone'].forEach(id=>{const el=$(id);el.onchange=renderStuTable;el.oninput=renderStuTable;});
+function removeStudent(sid){
+  const isC=$('#sSource').value==='clean';
+  const src=isC?DB.students:DB.roster, p=src[sid]; if(!p) return;
+  const bk=DB.bookings.filter(b=>b.sid===sid&&b.status==='booked').length;
+  const other=isC?DB.roster[sid]:DB.students[sid];
+  let warn='確定刪除 '+(p.cls||'')+' '+(p.name||'')+'（'+sid+'）？';
+  if(bk) warn+='\n這位同學還有 '+bk+' 筆預約，會一併取消。';
+  if(other) warn+='\n（另一份名單裡的資料不會被刪除）';
+  if(!confirm(warn)) return;
+  snapshot('刪除 '+(p.name||sid));
+  delete src[sid];
+  if(bk&&!other) DB.bookings.forEach(b=>{ if(b.sid===sid&&b.status==='booked') b.status='cancel'; });
+  save(); renderAdmin();
+  msg($('#sMsg'),'已刪除 '+esc(p.name||sid)+'。若刪錯了，可在下方或「備份與設定」按復原。','info');
+  $('#sMsg').insertAdjacentHTML('beforeend','<button class="btn sm warn" id="btnUndoDel">復原刪除</button>');
+  $('#btnUndoDel').onclick=doUndo;
+}
+$('#btnClearList').onclick=()=>{
+  const isC=$('#sSource').value==='clean';
+  const label=isC?'補打掃名單':'全校名單';
+  const n=Object.keys(isC?DB.students:DB.roster).length;
+  if(!n){ msg($('#sMsg'),'這份名單本來就是空的。','warn'); return; }
+  if(!confirm('要清空整份「'+label+'」嗎？共 '+n+' 人。\n（預約紀錄與另一份名單不受影響，之後仍可按復原）')) return;
+  if(!confirm('再次確認：'+label+' 的 '+n+' 筆資料將被清除。')) return;
+  snapshot('清空'+label);
+  if(isC) DB.students={}; else DB.roster={};
+  save(); renderAdmin();
+  msg($('#sMsg'),'已清空'+label+'（'+n+' 人）。','info');
+  $('#sMsg').insertAdjacentHTML('beforeend','<button class="btn sm warn" id="btnUndoClr">復原清空</button>');
+  $('#btnUndoClr').onclick=doUndo;
+};
 function editStu(sid){
   const s=DB.students[sid]; if(!s) return;
   const rs=recs(s);
@@ -1523,6 +1631,15 @@ $('#btnChgPass').onclick=()=>{
 function dl(blob,name){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+}
+function renderUndoBox(){
+  const box=$('#undoBox');
+  if(!undoAvailable()){ box.innerHTML='<p class="muted" style="margin:0">目前沒有可復原的動作。</p>'; return; }
+  const t=new Date(DB.undo.ts);
+  box.innerHTML='<p class="muted" style="margin:0 0 10px">最近一次名單異動：<b>'+esc(DB.undo.label)+'</b>　'
+    +t.getMonth()+1+'/'+t.getDate()+' '+pad2(t.getHours())+':'+pad2(t.getMinutes())+'</p>'
+    +'<button class="btn warn" id="btnUndoNow">復原這次異動</button>';
+  $('#btnUndoNow').onclick=doUndo;
 }
 $('#btnBackupJson').onclick=()=>{
   DB.lastBackup=new Date().toISOString(); save();
