@@ -9,17 +9,17 @@
 <title>衛生組返掃與愛校預約</title>
 <style>
 :root{
-  --bg:#eeece7; --surface:#f7f6f2; --card:#fbfaf7; --raise:#ffffff;
+  --bg:#f6f5f1; --surface:#f2f1ec; --card:#fefefd; --raise:#ffffff;
   --ink:#3a3f3b; --ink-2:#8b908a; --line:#e3dfd8;
   --mint:#a9dcc3; --mint-2:#bde6d2; --mint-d:#7cc5a4; --mint-ink:#2c5c47; --mint-soft:#e4f4ec;
   --warn:#f0d68a; --warn-ink:#7a5c10; --warn-soft:#fbf1d8;
   --err:#e79a96; --err-ink:#8c3733; --err-soft:#fae7e5;
   --r:20px; --r-sm:14px;
-  --up:5px 5px 12px rgba(160,152,140,.34), -5px -5px 12px rgba(255,255,255,.92);
-  --up-sm:3px 3px 7px rgba(160,152,140,.3), -3px -3px 7px rgba(255,255,255,.9);
-  --up-lg:9px 9px 22px rgba(160,152,140,.36), -8px -8px 20px rgba(255,255,255,.94);
-  --in:inset 3px 3px 7px rgba(160,152,140,.4), inset -3px -3px 7px rgba(255,255,255,.9);
-  --in-sm:inset 2px 2px 5px rgba(160,152,140,.35), inset -2px -2px 5px rgba(255,255,255,.88);
+  --up:5px 5px 12px rgba(158,150,136,.26), -5px -5px 12px rgba(255,255,255,.95);
+  --up-sm:3px 3px 7px rgba(158,150,136,.22), -3px -3px 7px rgba(255,255,255,.95);
+  --up-lg:9px 9px 22px rgba(158,150,136,.28), -8px -8px 20px rgba(255,255,255,.98);
+  --in:inset 3px 3px 7px rgba(158,150,136,.3), inset -3px -3px 7px rgba(255,255,255,.95);
+  --in-sm:inset 2px 2px 5px rgba(158,150,136,.26), inset -2px -2px 5px rgba(255,255,255,.92);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -32,13 +32,13 @@ h1,h2,h3{line-height:1.3;margin:0 0 .45em;font-weight:800;letter-spacing:-.01em}
 h1{font-size:1.75rem} h2{font-size:1.22rem} h3{font-size:1.02rem;font-weight:700}
 .num{font-variant-numeric:tabular-nums}
 .hide{display:none !important}
-.wrap{max-width:1060px;margin:0 auto;padding:20px 16px 44px}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 16px 44px}
 .muted{color:var(--ink-2);font-size:.9rem}
 .big{font-size:1.3rem;font-weight:700}
 
 /* ---- 頂欄 ---- */
-header.top{background:var(--surface);position:sticky;top:0;z-index:40;
-  box-shadow:0 4px 16px rgba(160,152,140,.2)}
+header.top{background:var(--card);position:sticky;top:0;z-index:40;
+  box-shadow:0 3px 14px rgba(158,150,136,.16)}
 header.top .wrap{display:flex;align-items:center;gap:12px;padding:13px 16px}
 header.top .brand{font-weight:800;font-size:1.02rem;color:var(--mint-ink)}
 header.top .who{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:.92rem;color:var(--ink-2)}
@@ -58,7 +58,7 @@ header.top .who{margin-left:auto;display:flex;align-items:center;gap:12px;font-s
 .btn.warn{background:linear-gradient(150deg,#efb2ae,var(--err));color:var(--err-ink)}
 .btn.sm{padding:7px 16px;font-size:.85rem;min-height:36px;box-shadow:var(--up-sm)}
 .btn.sm:hover{box-shadow:var(--up)}
-.btn[disabled]{background:linear-gradient(150deg,#e8e5df,#ded9d1);color:#a9a49c;
+.btn[disabled]{background:linear-gradient(150deg,#ecebe5,#e2dfd8);color:#a9a49c;
   box-shadow:var(--up-sm);cursor:not-allowed;filter:none;transform:none}
 :focus-visible{outline:3px solid var(--mint-d);outline-offset:3px}
 
@@ -73,7 +73,7 @@ select{appearance:none;padding-right:38px;
   background-repeat:no-repeat;background-position:right 14px center;background-size:12px}
 input:focus,select:focus{outline:none;box-shadow:var(--in),0 0 0 3px rgba(124,197,164,.45)}
 input[type=checkbox]{min-height:auto;width:20px;height:20px;box-shadow:none;accent-color:var(--mint-d)}
-label.field{display:block;margin-bottom:14px;font-size:.88rem;color:var(--ink-2);font-weight:600}
+label.field{display:block;margin-bottom:12px;font-size:.88rem;color:var(--ink-2);font-weight:600}
 label.field span{display:block;margin-bottom:6px}
 label.field input,label.field select{width:100%}
 
@@ -109,16 +109,18 @@ tbody tr:last-child td{border-bottom:0}
 .notice.err::before{content:'✕'}
 
 /* ---- 登入 ---- */
-.gate{max-width:470px;margin:5vh auto;padding:0 16px}
-.gate .card{padding:26px}
-.hero{text-align:center;padding-bottom:22px;margin-bottom:22px;position:relative}
+.gate{max-width:1240px;margin:16px auto;padding:0 14px}
+.gatesplit{display:grid;grid-template-columns:minmax(310px,380px) minmax(400px,1fr);gap:14px;align-items:start}
+@media(max-width:800px){.gatesplit{grid-template-columns:1fr}}
+.gate .card{padding:22px}
+.hero{text-align:center;padding-bottom:16px;margin-bottom:18px;position:relative}
 .hero::after{content:'';position:absolute;left:8%;right:8%;bottom:0;height:2px;border-radius:2px;
   background:linear-gradient(90deg,rgba(0,0,0,0),rgba(160,152,140,.28),rgba(0,0,0,0));
   box-shadow:0 1px 0 rgba(255,255,255,.9)}
-.crest{width:66px;height:66px;border-radius:24px;margin:0 auto 16px;display:grid;place-items:center;
+.crest{width:56px;height:56px;border-radius:20px;margin:0 auto 12px;display:grid;place-items:center;
   background:linear-gradient(150deg,var(--mint-2),var(--mint));box-shadow:var(--up);color:var(--mint-ink)}
-.crest svg{width:32px;height:32px}
-.hero h1{font-size:1.45rem;margin:0 0 12px;letter-spacing:-.02em}
+.crest svg{width:28px;height:28px}
+.hero h1{font-size:1.3rem;margin:0 0 10px;letter-spacing:-.02em}
 .chips{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border-radius:999px;
   background:var(--surface);box-shadow:var(--in-sm);font-size:.85rem;font-weight:700;color:var(--ink-2)}
@@ -127,11 +129,15 @@ tbody tr:last-child td{border-bottom:0}
   background:linear-gradient(150deg,var(--mint-2),var(--mint));box-shadow:var(--up-sm);color:var(--mint-ink)}
 .brandmark svg{width:17px;height:17px}
 header.top .brand{display:flex;align-items:center;gap:10px}
-.tabs{display:flex;gap:0;margin-bottom:22px;padding:5px;border-radius:999px;
+.tabs{display:flex;gap:0;margin-bottom:16px;padding:5px;border-radius:999px;
   background:var(--surface);box-shadow:var(--in)}
 .tabs button{flex:1;padding:10px;border:0;background:transparent;border-radius:999px;cursor:pointer;
   font-family:inherit;font-size:.98rem;font-weight:700;color:var(--ink-2);min-height:42px;transition:all .16s ease}
 .tabs button.on{background:linear-gradient(150deg,var(--mint-2),var(--mint));color:var(--mint-ink);box-shadow:var(--up-sm)}
+.adminlink{margin-top:18px;text-align:right}
+.adminlink button{border:0;background:none;font-family:inherit;font-size:.8rem;color:#b3b7b1;
+  cursor:pointer;padding:4px 6px;text-decoration:underline;text-underline-offset:3px}
+.adminlink button:hover{color:var(--ink-2)}
 .counter-note{margin-top:20px;padding:16px 18px;border-radius:var(--r-sm);
   background:var(--surface);box-shadow:var(--in-sm);text-align:left}
 .counter-note div{display:flex;gap:9px;align-items:flex-start;font-size:.88rem;color:var(--ink-2);line-height:1.6}
@@ -141,7 +147,7 @@ header.top .brand{display:flex;align-items:center;gap:10px}
 .counter-note b{color:var(--ink)}
 
 /* ---- 學生大按鈕 ---- */
-.bigbtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(228px,1fr));gap:16px;margin-bottom:18px}
+.bigbtns{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:16px}
 .bigbtn{border:0;border-radius:var(--r);cursor:pointer;padding:24px 20px;font-family:inherit;text-align:left;
   color:var(--ink);min-height:104px;background:linear-gradient(150deg,var(--raise),var(--surface));
   box-shadow:var(--up);transition:box-shadow .16s ease, transform .1s ease}
@@ -150,7 +156,7 @@ header.top .brand{display:flex;align-items:center;gap:10px}
 .bigbtn.on{background:linear-gradient(150deg,var(--mint-2),var(--mint));color:var(--mint-ink);box-shadow:var(--up-lg)}
 .bigbtn .t{font-size:1.2rem;font-weight:800;display:block;margin-bottom:3px}
 .bigbtn .s{font-size:.86rem;opacity:.75;font-weight:600}
-.bigbtn[disabled]{background:linear-gradient(150deg,#eae7e1,#e0dbd3);color:#a9a49c;
+.bigbtn[disabled]{background:linear-gradient(150deg,#eeece6,#e4e1da);color:#a9a49c;
   box-shadow:var(--up-sm);cursor:not-allowed}
 
 /* ---- 個資確認 ---- */
@@ -177,31 +183,36 @@ header.top .brand{display:flex;align-items:center;gap:10px}
   font-size:.94rem;box-shadow:var(--up-sm)}
 
 /* ---- 日曆 ---- */
-.calbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
-.cal .hd{text-align:center;font-size:.82rem;color:var(--ink-2);padding:4px 0;font-weight:700}
-.day{border-radius:var(--r-sm);min-height:88px;padding:7px;position:relative;overflow:hidden;
-  background:#e6e3dc;box-shadow:var(--in);color:#a8a49c}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(470px,590px);gap:16px;align-items:start}
+.split>.side{position:sticky;top:80px}
+@media(max-width:1050px){.split{grid-template-columns:1fr}.split>.side{position:static}}
+.calbar{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal .hd{text-align:center;font-size:.78rem;color:var(--ink-2);padding:2px 0;font-weight:700}
+.day{border-radius:11px;min-height:76px;padding:5px 5px;position:relative;overflow:hidden;
+  background:#eae8e1;box-shadow:var(--in);color:#a8a49c}
+.need{font-size:.58rem;line-height:1.5;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dotlab{font-size:.58rem;color:#9aa09a;margin-top:3px;line-height:1.25;white-space:nowrap}
 .day.out{opacity:.45}
-.day.open{background:linear-gradient(150deg,#ffffff,#f0f8f3);box-shadow:var(--up);color:var(--ink);cursor:pointer}
+.day.open{background:linear-gradient(150deg,#ffffff,#f2faf5);box-shadow:var(--up);color:var(--ink);cursor:pointer}
 .day.open::after{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--mint)}
 .day.open:hover{box-shadow:var(--up-lg)}
 .day.today{box-shadow:var(--in),inset 0 0 0 2px var(--mint-d)}
 .day.open.today{box-shadow:var(--up),inset 0 0 0 2px var(--mint-d)}
-.day .d{font-size:.88rem;font-weight:700}
+.day .d{font-size:.82rem;font-weight:700;line-height:1.3}
 .day.open .d{color:var(--mint-ink)}
-.ent{display:flex;align-items:center;gap:5px;font-size:.72rem;line-height:1.55;color:var(--ink-2);font-weight:600}
-.pt{width:11px;height:11px;border-radius:50%;flex:none;
+.ent{display:flex;flex-wrap:wrap;gap:3px;margin-top:1px}
+.pt{width:9px;height:9px;border-radius:50%;flex:none;
   box-shadow:inset -1px -1px 2px rgba(0,0,0,.16), inset 1px 1px 2px rgba(255,255,255,.65)}
 .pt.love{background:var(--err)} .pt.clean{background:#93bde4}
-.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:.85rem;color:var(--ink-2);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;font-size:.8rem;color:var(--ink-2);font-weight:600}
 .legend i{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:-1px;
   box-shadow:inset -1px -1px 2px rgba(0,0,0,.16), inset 1px 1px 2px rgba(255,255,255,.65)}
 
 /* ---- 對話框 ---- */
 dialog{border:0;border-radius:var(--r);padding:0;max-width:620px;width:calc(100% - 32px);
   background:var(--card);box-shadow:0 24px 60px rgba(120,112,100,.4)}
-dialog::backdrop{background:rgba(58,63,59,.35);backdrop-filter:blur(3px)}
+dialog::backdrop{background:rgba(58,63,59,.28);backdrop-filter:blur(3px)}
 dialog .dlg{padding:24px}
 .close{position:absolute;top:14px;right:16px;border:0;background:var(--surface);width:34px;height:34px;
   border-radius:50%;font-size:1.15rem;cursor:pointer;color:var(--ink-2);line-height:1;box-shadow:var(--up-sm)}
@@ -235,6 +246,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
 
 <!-- ===== 登入 ===== -->
 <section id="viewGate" class="gate">
+ <div class="gatesplit">
   <div class="card">
     <div class="hero">
       <div class="crest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v3M16 2v3M3.5 9.5h17"/><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="m8.6 14.6 2.3 2.3 4.5-4.9"/></svg></div>
@@ -246,13 +258,19 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
     </div>
     <div class="tabs">
       <button id="tabStu" class="on">學生</button>
-      <button id="tabAdm">管理者</button>
+      <button id="tabTea">教師</button>
     </div>
     <form id="formStu">
       <label class="field"><span>學號</span><input id="stuSid" inputmode="numeric" autocomplete="off" placeholder="請輸入你的學號" required></label>
       <label class="field"><span>姓名</span><input id="stuName" autocomplete="off" placeholder="請輸入本名" required></label>
       <button class="btn" style="width:100%">下一步</button>
     </form>
+    <form id="formTea" class="hide">
+      <label class="field"><span>教師帳號</span><input id="teaAcct" autocomplete="off" placeholder="學校信箱 @ 前面的英文" required></label>
+      <button class="btn" style="width:100%">進入登記需求</button>
+      <p class="muted" style="margin-bottom:0">例如信箱是 <b>ytbai@gapps.tp.edu.tw</b>，帳號就輸入 <b>ytbai</b>。教師登入不需要密碼。</p>
+    </form>
+
     <form id="formAdm" class="hide">
       <label class="field"><span>帳號</span><input id="admUser" autocomplete="username" required></label>
       <label class="field"><span>密碼</span><input id="admPass" type="password" autocomplete="current-password" required></label>
@@ -261,10 +279,30 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
     </form>
     <div id="gateMsg" style="margin-top:16px"></div>
     <div class="counter-note">
-      <div><b>本系統僅限學務處櫃檯操作</b></div>
-      <div>已與老師約好時間的同學不需預約，請自行攜帶愛校單前往</div>
+      <div><b>本系統僅限學務處櫃檯操作。</b></div>
+      <div id="noteLine2">已與老師約好時間的同學不需預約，請自行攜帶愛校單前往。</div>
+      <div>因個資維護，資料僅儲存於本裝置系統，名單僅衛生組可查閱。</div>
+    </div>
+    <div class="adminlink"><button id="lnkAdm">管理者登入</button></div>
+  </div>
+
+  <div class="card">
+    <h2>預約日曆</h2>
+    <p class="muted" style="margin-top:0">白色是可預約的日期，灰色不開放。點日期可看各地點的需求與目前預約人數。</p>
+    <div class="calbar" style="margin-top:14px">
+      <button class="btn sm flat" id="calPrev">←</button>
+      <b id="calTitle" class="num"></b>
+      <button class="btn sm flat" id="calNext">→</button>
+    </div>
+    <div class="cal" id="calGrid"></div>
+    <div class="legend">
+      <span><i style="background:#e79a96"></i>愛校服務</span>
+      <span><i style="background:#93bde4"></i>補打掃</span>
+      <span><i style="background:#eae8e1;box-shadow:none"></i>灰色＝不開放</span>
+      <span>不會顯示任何學生姓名</span>
     </div>
   </div>
+ </div>
 </section>
 
 <!-- ===== 個資確認 ===== -->
@@ -308,9 +346,10 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
   <div class="card hide" id="paneClean">
     <h2>預約補打掃</h2>
     <div id="cleanMsg"></div>
+    <p class="muted" id="cleanNote" style="margin-top:0"></p>
     <div class="stats" style="margin-bottom:18px">
-      <div class="stat"><b id="pReq" class="num">0</b><span>應打掃次數</span></div>
-      <div class="stat"><b id="pDone" class="num">0</b><span>已完成</span></div>
+      <div class="stat"><b id="pReq" class="num">0</b><span>應補場次</span></div>
+      <div class="stat"><b id="pDone" class="num">0</b><span>已補場次</span></div>
       <div class="stat"><b id="pPend" class="num">0</b><span>已預約</span></div>
       <div class="stat hi"><b id="pLeft" class="num">0</b><span>尚需預約</span></div>
     </div>
@@ -327,21 +366,31 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
     <div id="mineBody"></div>
   </div>
 
+</section>
+
+<!-- ===== 教師 ===== -->
+<section id="viewTea" class="wrap hide">
   <div class="card">
-    <h2>預約日曆</h2>
-    <div class="calbar">
-      <button class="btn sm flat" id="calPrev">← 上個月</button>
-      <b id="calTitle" class="num"></b>
-      <button class="btn sm flat" id="calNext">下個月 →</button>
+    <h2>登記需求時段</h2>
+    <p class="muted" style="margin-top:0">時段固定為中午 12:30–13:00。學生只能預約已經登記、且尚未額滿的時段。</p>
+    <div class="row" style="align-items:flex-end;margin-top:14px">
+      <label class="field" style="margin-bottom:0"><span>類別</span><select id="tType">
+        <option value="love">愛校服務</option><option value="clean">補打掃</option></select></label>
+      <label class="field" style="margin-bottom:0"><span>日期</span><input type="date" id="tDate"></label>
+      <label class="field" style="margin-bottom:0;flex:1;min-width:180px"><span>地點</span><input id="tPlace" placeholder="例如 教務處、川堂"></label>
+      <label class="field" style="margin-bottom:0"><span>需求人數</span><input type="number" id="tCap" value="2" min="1" style="width:120px"></label>
+      <button class="btn" id="btnTeaAdd">新增需求</button>
     </div>
-    <div class="cal" id="calGrid"></div>
-    <div class="legend">
-      <span><i style="background:#e79a96"></i>愛校服務</span>
-      <span><i style="background:#93bde4"></i>補打掃</span>
-      <span><i style="background:#e6e3dc;box-shadow:none"></i>灰色＝不開放預約</span>
-      <span>圓點旁只顯示班級，不會顯示姓名</span>
-    </div>
+    <p class="muted" id="tWho" style="margin-top:14px"></p>
+    <div id="tMsg"></div>
   </div>
+
+  <div class="card">
+    <h2>我登記的需求</h2>
+    <div id="tDemands"></div>
+  </div>
+
+  <p class="muted">各日期的需求與預約人數，請看登入頁的預約日曆。</p>
 </section>
 
 <!-- ===== 管理者 ===== -->
@@ -418,7 +467,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
       <div class="legend">
         <span><i style="background:#e79a96"></i>愛校服務</span>
         <span><i style="background:#93bde4"></i>補打掃</span>
-        <span><i style="background:#e6e3dc;box-shadow:none"></i>灰色＝未登記需求或已停用</span>
+        <span><i style="background:#eae8e1;box-shadow:none"></i>灰色＝未登記需求或已停用</span>
       </div>
     </div>
     <div class="card">
@@ -447,6 +496,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
             <option value="roster">全校名單（愛校服務用：學號、姓名、班級、座號）</option>
             <option value="clean">補打掃名單（含應打掃次數與已完成紀錄）</option>
             <option value="classonly">只更新補打掃名單的班級座號（換班對照）</option>
+            <option value="staff">教職員名單（教師登入用：帳號、姓名、單位、科目）</option>
           </select></label>
       </div>
       <label class="filelabel" for="fileXlsx">點此選擇 Excel 檔（.xlsx），或將檔案拖曳到這裡</label>
@@ -475,7 +525,8 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
       <h2>學生資料</h2>
       <div class="row" style="margin-bottom:16px">
         <label class="field" style="margin-bottom:0"><span>名單</span><select id="sSource">
-          <option value="clean">補打掃名單</option><option value="roster">全校名單</option></select></label>
+          <option value="clean">補打掃名單</option><option value="roster">全校學生名單</option>
+          <option value="staff">教職員名單</option></select></label>
         <label class="field" style="margin-bottom:0"><span>班級</span><select id="sCls"><option value="">全部</option></select></label>
         <label class="field" style="margin-bottom:0"><span>搜尋</span><input id="sKey" placeholder="學號或姓名" style="width:175px"></label>
         <label class="muted" style="display:flex;align-items:center;gap:7px;font-weight:600"><input type="checkbox" id="sUndone"> 只看未完成</label>
@@ -483,6 +534,21 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
         <button class="btn sm warn" id="btnClearList" style="margin-left:auto">清空這份名單</button>
       </div>
       <div id="sMsg"></div>
+      <div class="row hide" id="stuAdd" style="align-items:flex-end;margin-bottom:14px">
+        <label class="field" style="margin-bottom:0"><span>學號</span><input id="nsSid" inputmode="numeric" style="width:135px"></label>
+        <label class="field" style="margin-bottom:0"><span>姓名</span><input id="nsName" style="width:120px"></label>
+        <label class="field" style="margin-bottom:0"><span>班級</span><input id="nsCls" placeholder="高二忠" style="width:110px"></label>
+        <label class="field" style="margin-bottom:0"><span>座號</span><input id="nsSeat" style="width:90px"></label>
+        <label class="field hide" style="margin-bottom:0" id="wrapNsReq"><span>應打掃次數</span><input type="number" id="nsReq" min="0" value="0" style="width:120px"></label>
+        <button class="btn sm" id="btnAddStu">手動新增</button>
+      </div>
+      <div class="row hide" id="staffAdd" style="align-items:flex-end;margin-bottom:14px">
+        <label class="field" style="margin-bottom:0"><span>帳號</span><input id="stAcct" placeholder="信箱 @ 前面" style="width:150px"></label>
+        <label class="field" style="margin-bottom:0"><span>姓名</span><input id="stName" style="width:130px"></label>
+        <label class="field" style="margin-bottom:0"><span>單位</span><input id="stDept" placeholder="教務處" style="width:130px"></label>
+        <label class="field" style="margin-bottom:0"><span>科目</span><input id="stSubj" placeholder="國文" style="width:120px"></label>
+        <button class="btn sm" id="btnAddStaff">手動新增</button>
+      </div>
       <div class="scroll"><table id="tblStu"><thead></thead><tbody></tbody></table></div>
     </div>
   </div>
@@ -536,6 +602,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
       <div class="row" style="align-items:flex-end">
         <label class="field" style="margin-bottom:0"><span>時段</span><input id="setSlot" style="width:170px"></label>
         <label class="field" style="margin-bottom:0"><span>愛校一次可約幾場</span><input type="number" id="setMax" min="1" style="width:130px"></label>
+        <label class="field" style="margin-bottom:0"><span>返校打掃一次折抵幾場</span><input type="number" id="setUnit" min="1" style="width:150px"></label>
         <label class="field" style="margin-bottom:0"><span>閒置幾秒自動結束</span><input type="number" id="setIdle" min="0" style="width:140px"></label>
         <label class="field" style="margin-bottom:0"><span>舊紀錄年份（702→7月）</span><input type="number" id="setYear" style="width:140px"></label>
         <button class="btn" id="btnSaveSet">儲存設定</button>
@@ -719,29 +786,51 @@ const CRCT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for
 function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRCT[(c^u8[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
 function xesc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c])).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'');}
 function colName(n){let s='';n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26;}return s;}
+/* 樣式索引：0 一般、1 標題粗體、2 粉紅、3 深灰、4 粉紅標題 */
+const STYLES_XML='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+ +'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+ +'<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>'
+ +'<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+ +'<fill><patternFill patternType="solid"><fgColor rgb="FFF9CEDC"/><bgColor indexed="64"/></patternFill></fill>'
+ +'<fill><patternFill patternType="solid"><fgColor rgb="FFA6A6A6"/><bgColor indexed="64"/></patternFill></fill></fills>'
+ +'<borders count="1"><border/></borders>'
+ +'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+ +'<cellXfs count="5">'
+ +'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+ +'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'
+ +'<xf numFmtId="0" fontId="0" fillId="2" borderId="0" xfId="0" applyFill="1"/>'
+ +'<xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1"/>'
+ +'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'
+ +'</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+/* 儲存格可以是純值，或 {v:值, s:樣式索引} */
 function buildXlsx(sheets){
   const ENC=new TextEncoder(), files={};
   const sheetXml=rows=>{
     let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
     rows.forEach((row,ri)=>{
       x+='<row r="'+(ri+1)+'">';
-      row.forEach((v,ci)=>{
-        if(v==null||v==='') return;
-        const ref=colName(ci)+(ri+1);
-        if(typeof v==='number'&&isFinite(v)) x+='<c r="'+ref+'"><v>'+v+'</v></c>';
-        else x+='<c r="'+ref+'" t="inlineStr"><is><t xml:space="preserve">'+xesc(v)+'</t></is></c>';
+      row.forEach((cell,ci)=>{
+        let v=cell, st=0;
+        if(cell&&typeof cell==='object'){ v=cell.v; st=cell.s||0; }
+        if((v==null||v==='')&&!st) return;
+        const ref=colName(ci)+(ri+1), sa=st?' s="'+st+'"':'';
+        if(v==null||v==='') x+='<c r="'+ref+'"'+sa+'/>';
+        else if(typeof v==='number'&&isFinite(v)) x+='<c r="'+ref+'"'+sa+'><v>'+v+'</v></c>';
+        else x+='<c r="'+ref+'"'+sa+' t="inlineStr"><is><t xml:space="preserve">'+xesc(v)+'</t></is></c>';
       });
       x+='</row>';
     });
     return x+'</sheetData></worksheet>';
   };
-  files['[Content_Types].xml']='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+  files['[Content_Types].xml']='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
     +sheets.map((s,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('')+'</Types>';
+  files['xl/styles.xml']=STYLES_XML;
   files['_rels/.rels']='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
   files['xl/workbook.xml']='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
     +sheets.map((s,i)=>'<sheet name="'+xesc(s.name)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join('')+'</sheets></workbook>';
   files['xl/_rels/workbook.xml.rels']='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-    +sheets.map((s,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')+'</Relationships>';
+    +sheets.map((s,i)=>'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join('')
+    +'<Relationship Id="rIdS" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
   sheets.forEach((s,i)=>{files['xl/worksheets/sheet'+(i+1)+'.xml']=sheetXml(s.rows);});
   const parts=[],cd=[]; let off=0;
   for(const n in files){
@@ -773,9 +862,9 @@ let DB=null;
 function defaultDB(){
   const n=new Date();
   return {
-    admins:[], students:{}, roster:{},
+    admins:[], students:{}, roster:{}, staff:{},
     demands:{}, closed:{love:{},clean:{}}, bookings:[],
-    settings:{slot:'12:30-13:00',days:[1,4,5],loveMax:3,idle:90,startYear:n.getMonth()>=6?n.getFullYear():n.getFullYear()-1},
+    settings:{slot:'12:30-13:00',days:[1,4,5],loveMax:3,unit:3,idle:90,startYear:n.getMonth()>=6?n.getFullYear():n.getFullYear()-1},
     lastBackup:null, seq:1
   };
 }
@@ -806,7 +895,13 @@ function person(sid){
   };
 }
 const recs=st=>(st&&st.records)||[];
-const doneOf=sid=>{const c=DB.students[sid];return c?recs(c).length:0;};
+const unitOf=()=>Math.max(1,+DB.settings.unit||3);
+/* 暑假紀錄以「次」計（1.5 小時），開學後的預約與補登以「場」計（30 分鐘） */
+const summerRecs=st=>recs(st).filter(r=>r.src==='import');
+const slotRecs=st=>recs(st).filter(r=>r.src!=='import');
+const needSlotsTotal=st=>Math.max(0,((st.required||0)-summerRecs(st).length)*unitOf());
+const doneSlots=st=>slotRecs(st).length;
+const remainSlots=st=>Math.max(0,needSlotsTotal(st)-doneSlots(st));
 function activeBookings(sid,type){
   const t=today();
   return DB.bookings.filter(b=>b.sid===sid&&b.status==='booked'&&b.date>=t&&(!type||b.type===type));
@@ -816,7 +911,7 @@ function allBookings(sid,type){
 }
 function leftClean(sid){
   const c=DB.students[sid]; if(!c) return 0;
-  return Math.max(0,(c.required||0)-recs(c).length-activeBookings(sid,'clean').length);
+  return Math.max(0,remainSlots(c)-activeBookings(sid,'clean').length);
 }
 const isClosed=(d,t)=>!!(DB.closed[t]&&DB.closed[t][d]);
 /* 時段開始時間（分鐘）。過了今天的時段就從明天算起 */
@@ -862,19 +957,26 @@ let SESSION=null, PENDING=null, idleTimer=null;
 function resetIdle(){
   clearTimeout(idleTimer);
   const sec=+DB.settings.idle||0;
-  if(sec>0&&SESSION&&SESSION.type==='student') idleTimer=setTimeout(()=>gate(),sec*1000);
+  if(sec>0&&SESSION&&SESSION.type!=='admin') idleTimer=setTimeout(()=>gate(),sec*1000);
 }
 ['click','keydown','touchstart'].forEach(e=>document.addEventListener(e,resetIdle,{passive:true}));
 
 function gate(){
   SESSION=null; PENDING=null; clearTimeout(idleTimer);
   $('#viewGate').classList.remove('hide');
-  ['#viewConfirm','#viewStu','#viewAdm','#topbar'].forEach(s=>$(s).classList.add('hide'));
-  $('#formStu').reset(); $('#formAdm').reset(); msg($('#gateMsg'),'');
+  ['#viewConfirm','#viewStu','#viewTea','#viewAdm','#topbar'].forEach(s=>$(s).classList.add('hide'));
+  $('#formStu').reset(); $('#formTea').reset(); $('#formAdm').reset();
+  gateTab('stu');
+  drawGateCal();
 }
 function enter(){
   $('#viewGate').classList.add('hide'); $('#viewConfirm').classList.add('hide');
   $('#topbar').classList.remove('hide');
+  if(SESSION.type==='teacher'){
+    const t=DB.staff[SESSION.acct]||{};
+    $('#whoText').textContent='教師　'+(t.name||SESSION.acct)+(t.subject?'（'+t.subject+'）':'');
+    $('#viewTea').classList.remove('hide'); renderTeacher(); resetIdle(); return;
+  }
   if(SESSION.type==='admin'){
     const a=DB.admins.find(x=>x.user===SESSION.user)||{};
     $('#whoText').textContent='管理者　'+(a.disp||SESSION.user);
@@ -885,10 +987,29 @@ function enter(){
     $('#viewStu').classList.remove('hide'); renderStu(); resetIdle();
   }
 }
-$('#tabStu').onclick=()=>{$('#tabStu').classList.add('on');$('#tabAdm').classList.remove('on');
-  $('#formStu').classList.remove('hide');$('#formAdm').classList.add('hide');msg($('#gateMsg'),'');};
-$('#tabAdm').onclick=()=>{$('#tabAdm').classList.add('on');$('#tabStu').classList.remove('on');
-  $('#formAdm').classList.remove('hide');$('#formStu').classList.add('hide');msg($('#gateMsg'),'');};
+const NOTE_STU='已與老師約好時間的同學不需預約，請自行攜帶愛校單前往。';
+const NOTE_TEA='學生人力依教師登記需求的先後順序分派。';
+function gateTab(which){
+  $('#noteLine2').textContent = which==='tea'?NOTE_TEA:NOTE_STU;
+  $('#tabStu').classList.toggle('on',which==='stu');
+  $('#tabTea').classList.toggle('on',which==='tea');
+  $('#formStu').classList.toggle('hide',which!=='stu');
+  $('#formTea').classList.toggle('hide',which!=='tea');
+  $('#formAdm').classList.toggle('hide',which!=='adm');
+  msg($('#gateMsg'),'');
+}
+$('#tabStu').onclick=()=>gateTab('stu');
+$('#tabTea').onclick=()=>gateTab('tea');
+$('#lnkAdm').onclick=()=>{ gateTab('adm'); $('#admUser').focus(); };
+
+$('#formTea').onsubmit=e=>{
+  e.preventDefault();
+  const a=$('#teaAcct').value.trim().toLowerCase().split('@')[0];
+  if(!a){ msg($('#gateMsg'),'請輸入帳號。','warn'); return; }
+  if(!Object.keys(DB.staff).length){ msg($('#gateMsg'),'尚未匯入教職員名單，請洽衛生組。','err'); return; }
+  if(!DB.staff[a]){ msg($('#gateMsg'),'查無此帳號，請確認是學校信箱 @ 前面那一段，或洽衛生組。','err'); return; }
+  SESSION={type:'teacher',acct:a}; enter();
+};
 
 $('#formStu').onsubmit=e=>{
   e.preventDefault();
@@ -929,10 +1050,8 @@ function renderStu(){
   const p=person(SESSION.sid);
   $('#bigClean').disabled=!p.clean;
   $('#bigClean').querySelector('.s').textContent = p.clean
-    ? '尚需 '+leftClean(SESSION.sid)+' 次' : '你不在補打掃名單中';
+    ? '尚需 '+leftClean(SESSION.sid)+' 場' : '你不在補打掃名單中';
   fillLove(); fillClean(); renderMine();
-  if(!calYM){const t=new Date();calYM={y:t.getFullYear(),m:t.getMonth()};}
-  drawCal($('#calGrid'),$('#calTitle'),calYM,'stu');
 }
 function showPane(which){
   [['#bigLove','#paneLove'],['#bigClean','#paneClean'],['#bigMine','#paneMine']].forEach(([b,p])=>{
@@ -977,10 +1096,13 @@ function fillLove(){
 function fillClean(){
   const c=DB.students[SESSION.sid];
   if(!c){ $('#paneClean').querySelector('.stats').classList.add('hide'); return; }
-  $('#pReq').textContent=c.required||0;
-  $('#pDone').textContent=recs(c).length;
+  $('#pReq').textContent=needSlotsTotal(c);
+  $('#pDone').textContent=doneSlots(c);
   $('#pPend').textContent=activeBookings(SESSION.sid,'clean').length;
   $('#pLeft').textContent=leftClean(SESSION.sid);
+  $('#cleanNote').innerHTML='應打掃 <b>'+(c.required||0)+'</b> 次'
+    +(summerRecs(c).length?'，暑假已完成 <b>'+summerRecs(c).length+'</b> 次':'')
+    +'。開學後中午每場 30 分鐘，<b>'+unitOf()+'</b> 場折抵 1 次，所以共需 <b>'+needSlotsTotal(c)+'</b> 場。';
   fillDates($('#cleanDate'),'clean'); fillPlaces($('#cleanDate'),$('#cleanPlace'),'clean');
   $('#btnCleanBook').disabled=leftClean(SESSION.sid)<=0;
   renderBookList('#cleanList','clean');
@@ -998,7 +1120,7 @@ function book(type){
   if(isClosed(d,type)||!demandsOf(d,type).length){ msg(M,'這一天不開放預約。','err'); return; }
   if(type==='love'&&activeBookings(SESSION.sid,'love').length>=DB.settings.loveMax){
     msg(M,'你已經排滿 '+DB.settings.loveMax+' 場，完成後才能再排。','warn'); return; }
-  if(type==='clean'&&leftClean(SESSION.sid)<=0){ msg(M,'你的補打掃次數已經排滿或已完成。','warn'); return; }
+  if(type==='clean'&&leftClean(SESSION.sid)<=0){ msg(M,'你的補打掃場次已經排滿或已完成。','warn'); return; }
   if(DB.bookings.some(b=>b.sid===SESSION.sid&&b.date===d&&b.status==='booked')){
     msg(M,d.slice(5).replace('-','/')+' 你已經有預約了，一天只能排一場。','warn'); return; }
   const dm=demandsOf(d,type).find(x=>x.id===did);
@@ -1040,9 +1162,67 @@ function renderMine(){
   $('#mineBody').innerHTML=slipHtml()
     +'<p class="muted" style="margin-top:14px">忘記或弄丟時，隨時用學號姓名登入就能再看一次。</p>';
 }
-$('#calPrev').onclick=()=>{calYM.m--;if(calYM.m<0){calYM.m=11;calYM.y--;}drawCal($('#calGrid'),$('#calTitle'),calYM,'stu');};
-$('#calNext').onclick=()=>{calYM.m++;if(calYM.m>11){calYM.m=0;calYM.y++;}drawCal($('#calGrid'),$('#calTitle'),calYM,'stu');};
+/* 登入頁公開日曆：不含任何學生姓名 */
+function drawGateCal(){
+  if(!calYM){const t=new Date();calYM={y:t.getFullYear(),m:t.getMonth()};}
+  drawCal($('#calGrid'),$('#calTitle'),calYM,'pub');
+}
+$('#calPrev').onclick=()=>{calYM.m--;if(calYM.m<0){calYM.m=11;calYM.y--;}drawGateCal();};
+$('#calNext').onclick=()=>{calYM.m++;if(calYM.m>11){calYM.m=0;calYM.y++;}drawGateCal();};
 
+/* ============================================================
+   教師端
+   ============================================================ */
+function renderTeacher(){
+  const t=DB.staff[SESSION.acct]||{};
+  $('#tWho').innerHTML='登記人：<b>'+esc(t.name||SESSION.acct)+'</b>'
+    +(t.dept?'　'+esc(t.dept):'')+(t.subject?'　'+esc(t.subject):'')
+    +'。學生預約時會看到你的姓名與科目。';
+  if(!$('#tDate').value) $('#tDate').value=minBookDate();
+  renderTeaDemands();
+}
+function myDemands(){
+  const out=[];
+  Object.keys(DB.demands).sort().forEach(d=>demandsOf(d).forEach(x=>{
+    if(x.byAcct===SESSION.acct) out.push({d,x});
+  }));
+  return out;
+}
+$('#btnTeaAdd').onclick=()=>{
+  const t=DB.staff[SESSION.acct]||{}, M=$('#tMsg');
+  const type=$('#tType').value, d=$('#tDate').value, place=$('#tPlace').value.trim();
+  const cap=parseInt($('#tCap').value,10)||1;
+  if(!d||!place){ msg(M,'請填寫日期與地點。','warn'); return; }
+  if(d<minBookDate()){ msg(M, d<today()?'不能登記已經過去的日期。':'今天的時段已經開始，請登記明天以後。','warn'); return; }
+  DB.demands[d]=(DB.demands[d]||[]).concat([{id:nextId(),type,place,cap,
+    teacher:t.name||SESSION.acct,subject:t.subject||'',by:SESSION.acct,byAcct:SESSION.acct}]);
+  save(); $('#tPlace').value='';
+  msg(M,'已登記 '+d.slice(5).replace('-','/')+'（週'+wd(d)+'）　'+esc(place)+'　'+cap+' 人。','info');
+  renderTeacher();
+};
+function renderTeaDemands(){
+  const list=myDemands(), box=$('#tDemands');
+  if(!list.length){ box.innerHTML='<p class="muted">你還沒有登記任何需求。</p>'; return; }
+  const td=today();
+  box.innerHTML='<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>已預約</th><th>狀態</th><th></th></tr></thead><tbody>'
+    +list.map(o=>{
+      const d=o.d, x=o.x, n=bookedOn(d,x.id), past=d<td;
+      return '<tr><td class="num">'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）</td>'
+        +'<td><span class="tag '+TYPE[x.type].cls+'">'+TYPE[x.type].name+'</span></td>'
+        +'<td>'+esc(x.place)+'</td><td class="num">'+n+' / '+x.cap+'</td>'
+        +'<td>'+(past?'<span class="muted">已結束</span>':isClosed(d,x.type)?'<span class="tag wait">該日停用</span>':n>=x.cap?'<span class="tag ok">已額滿</span>':'<span class="muted">開放中</span>')+'</td>'
+        +'<td>'+((!past&&!n)?'<button class="btn sm flat" data-tdel="'+d+'|'+x.id+'">刪除</button>':'')+'</td></tr>';
+    }).join('')+'</tbody></table></div>'
+    +'<p class="muted">已排定學生，需要取消請洽衛生組。</p>';
+  box.querySelectorAll('[data-tdel]').forEach(b=>b.onclick=()=>{
+    const parts=b.dataset.tdel.split('|'), d=parts[0], id=parts[1];
+    if(bookedOn(d,id)){ msg($('#tMsg'),'這個時段已經有人預約，不能刪除。','warn'); renderTeacher(); return; }
+    if(!confirm('刪除這筆需求？')) return;
+    DB.demands[d]=(DB.demands[d]||[]).filter(x=>x.id!==id);
+    if(!DB.demands[d].length) delete DB.demands[d];
+    save(); renderTeacher();
+  });
+}
 /* ============================================================
    日曆
    ============================================================ */
@@ -1056,11 +1236,22 @@ function drawCal(grid,titleEl,ym,mode){
     const bs=DB.bookings.filter(b=>b.date===d&&b.status==='booked');
     const someOpen=d>=minBookDate()&&['love','clean'].some(t=>demandsOf(d,t).length>0&&!isClosed(d,t));
     let cls='day'+(out?' out':'')+(someOpen?' open':'')+(d===today()?' today':'');
-    const ents=bs.slice(0,6).map(b=>{
-      const p=person(b.sid);
-      return '<div class="ent"><span class="pt '+TYPE[b.type].cls+'"></span>'+esc(p?p.cls:'')+'</div>';
-    }).join('')+(bs.length>6?'<div class="ent muted">＋'+(bs.length-6)+'</div>':'');
-    h+='<div class="'+cls+'" data-d="'+d+'"><div class="d">'+dt.getDate()+'</div>'+ents+'</div>';
+    /* 依地點彙總需求人數 */
+    const byPlace={}, order=[];
+    demandsOf(d).forEach(x=>{
+      if(isClosed(d,x.type)) return;
+      if(byPlace[x.place]===undefined){ byPlace[x.place]=0; order.push(x.place); }
+      byPlace[x.place]+=(+x.cap||0);
+    });
+    let body=order.slice(0,5).map(pl=>'<div class="need">'+esc(pl)+'需'+byPlace[pl]+'人</div>').join('');
+    if(order.length>5) body+='<div class="need">＋'+(order.length-5)+' 處</div>';
+    if(order.length){
+      body+='<div class="dotlab">今日學生：'+(bs.length?bs.length:'0')+'</div>';
+      if(bs.length) body+='<div class="ent">'
+        +bs.slice(0,12).map(b=>'<span class="pt '+TYPE[b.type].cls+'"></span>').join('')
+        +(bs.length>12?'<span class="dotlab">＋'+(bs.length-12)+'</span>':'')+'</div>';
+    }
+    h+='<div class="'+cls+'" data-d="'+d+'"><div class="d">'+dt.getDate()+'</div>'+body+'</div>';
   }
   grid.innerHTML=h;
   grid.querySelectorAll('.day').forEach(el=>el.onclick=()=>dayInfo(el.dataset.d,mode));
@@ -1070,12 +1261,16 @@ function dayInfo(d,mode){
   let h='<h3>'+d.replace(/-/g,'/')+'（週'+wd(d)+'）</h3>';
   if(d<today()) h+='<p class="muted">這一天已經過去，不能再預約。</p>';
   else if(d<minBookDate()) h+='<p class="muted">今天的時段已經開始，不能再預約。</p>';
+  const totalNeed=['love','clean'].reduce((a,t)=>a+(isClosed(d,t)?0:capOf(d,t)),0);
+  if(totalNeed&&!bs.length) h+='<div class="notice warn">這天還沒有人預約，目前需求 '+totalNeed+' 人。</div>';
+  else if(totalNeed) h+='<p>需求 <b>'+totalNeed+'</b> 人，已預約 <b>'+bs.length+'</b> 人'
+    +(bs.length<totalNeed?'，還缺 <b>'+(totalNeed-bs.length)+'</b> 人':'')+'。</p>';
   ['love','clean'].forEach(t=>{
     const dm=demandsOf(d,t);
     if(!dm.length&&!isClosed(d,t)&&mode!=='adm') return;
     h+='<p><span class="tag '+TYPE[t].cls+'">'+TYPE[t].name+'</span> ';
     h+= isClosed(d,t) ? '<b>本日停用</b>' :
-      (dm.length? dm.map(x=>esc(x.place)+(x.teacher?'／'+esc(x.teacher):'')+' '+bookedOn(d,x.id)+'/'+x.cap).join('　')
+      (dm.length? dm.map(x=>esc(x.place)+(x.teacher?'／'+esc(x.teacher):'')+' '+bookedOn(d,x.id)+'/'+x.cap+' 人').join('　')
                 : '<span class="muted">尚未登記需求</span>');
     if(mode==='adm'){
       const lock=lockReason(d,t);
@@ -1095,10 +1290,7 @@ function dayInfo(d,mode){
         +'</tbody></table>'
       : '<p class="muted">今天沒有人預約。</p>';
   }else{
-    const mine=bs.filter(b=>b.sid===SESSION.sid);
-    h+='<p>這一天共 <b>'+bs.length+'</b> 人預約。</p>';
-    h+= mine.length ? '<p><span class="tag ok">你有預約：'+mine.map(b=>esc(b.place)).join('、')+'</span></p>'
-      : '<p class="muted">名單僅衛生組可查看。</p>';
+    h+='<p class="muted">名單僅衛生組可查看，這裡只顯示人數。</p>';
   }
   openDlg(h);
   if(mode==='adm') $('#dlgBody').querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{
@@ -1128,6 +1320,7 @@ function renderAdmin(){
     +(DB.settings.days.indexOf(i)>=0?' checked':'')+'>週'+WD[i]+'</label>').join('');
   $('#setSlot').value=DB.settings.slot;
   $('#setMax').value=DB.settings.loveMax;
+  $('#setUnit').value=unitOf();
   $('#setIdle').value=DB.settings.idle;
   $('#setYear').value=DB.settings.startYear;
   if(!acalYM){const t=new Date();acalYM={y:t.getFullYear(),m:t.getMonth()};}
@@ -1159,7 +1352,7 @@ $('#btnAddDemand').onclick=()=>{
   const M=$('#dMsg');
   if(!d||!place){ msg(M,'請填寫日期與地點。','warn'); return; }
   if(d<today()){ msg(M,'不能登記已經過去的日期。','warn'); return; }
-  DB.demands[d]=(DB.demands[d]||[]).concat([{id:nextId(),type:t,place,cap,teacher,subject,by:SESSION.user}]);
+  DB.demands[d]=(DB.demands[d]||[]).concat([{id:nextId(),type:t,place,cap,teacher,subject,by:SESSION.user,byAcct:''}]);
   save(); $('#dPlace').value='';
   msg(M,'已新增 '+d.slice(5).replace('-','/')+'（週'+wd(d)+'）　'+esc(place)+'　'+cap+' 人。','info');
   renderAdmin();
@@ -1179,7 +1372,7 @@ $('#btnBatchDemand').onclick=()=>{
   for(let dt=parseYmd(f);ymd(dt)<=to;dt.setDate(dt.getDate()+1)){
     const d=ymd(dt); if(d<td||picked.indexOf(dt.getDay())<0) continue;
     const cur=(DB.demands[d]||[]).slice();
-    names.forEach(p=>{ if(!cur.some(x=>x.type===t&&x.place===p)) cur.push({id:nextId(),type:t,place:p,cap,teacher,subject,by:SESSION.user}); });
+    names.forEach(p=>{ if(!cur.some(x=>x.type===t&&x.place===p)) cur.push({id:nextId(),type:t,place:p,cap,teacher,subject,by:SESSION.user,byAcct:''}); });
     DB.demands[d]=cur; n++;
   }
   save(); msg(M,'已套用到 '+n+' 天。','info'); renderAdmin();
@@ -1191,7 +1384,8 @@ function renderDemands(){
     +list.map(d=>demandsOf(d).map(x=>
       '<tr><td class="num">'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）</td>'
       +'<td><span class="tag '+TYPE[x.type].cls+'">'+TYPE[x.type].name+'</span></td>'
-      +'<td>'+esc(x.place)+'</td><td>'+esc(x.teacher||'—')+(x.subject?'　'+esc(x.subject):'')+'</td>'
+      +'<td>'+esc(x.place)+'</td><td>'+esc(x.teacher||'—')+(x.subject?'　'+esc(x.subject):'')
+      +(x.byAcct?'<br><span class="muted">教師自行登記：'+esc(x.byAcct)+'</span>':'')+'</td>'
       +'<td class="num">'+bookedOn(d,x.id)+' / '+x.cap+'</td>'
       +'<td><button class="btn sm flat" data-dd="'+d+'|'+x.id+'">刪除</button></td></tr>').join('')).join('')
     +'</tbody></table></div>';
@@ -1284,7 +1478,20 @@ $('#btnClearQ').onclick=()=>{ $('#qDate').value=''; $('#qType').value=''; $('#qC
 /* ---- 名單匯入 ---- */
 const FIELDS=[['skip','（不匯入）'],['sid','學號'],['name','姓名'],['cls','班級'],['seat','座號'],
   ['classNo','班號'],['oldCls','原班級'],['oldSeat','原座號'],['required','應打掃次數'],['date','返掃紀錄欄'],['note','備註']];
+const FIELDS_STAFF=[['skip','（不匯入）'],['acct','帳號／Email'],['name','姓名'],['dept','單位／處室'],['subject','科目']];
 let IMP=null;
+const isStaffImport=()=>$('#impTarget').value==='staff';
+const fieldList=()=>isStaffImport()?FIELDS_STAFF:FIELDS;
+function guessStaff(h){
+  const s=String(h||'').replace(/\s/g,'');
+  if(!s) return 'skip';
+  if(/信箱|email|mail|電子郵件|帳號|acct|account/i.test(s)) return 'acct';
+  if(/姓名|教師|老師|職員/.test(s)) return 'name';
+  if(/單位|處室|科別|組別|部門/.test(s)) return 'dept';
+  if(/科目|任教|領域/.test(s)) return 'subject';
+  return 'skip';
+}
+const guessFor=h=>isStaffImport()?guessStaff(h):guess(h);
 function guess(h){
   const s=String(h||'').replace(/\s/g,'');
   if(!s) return 'skip';
@@ -1302,7 +1509,8 @@ function guess(h){
 function headerRowOf(rows){
   for(let i=0;i<Math.min(rows.length,20);i++){
     const r=(rows[i]||[]).map(c=>String(c==null?'':c));
-    if(r.some(c=>/姓名/.test(c))&&r.some(c=>/班級|學號/.test(c))) return i;
+    if(!r.some(c=>/姓名/.test(c))) continue;
+    if(r.some(c=>/班級|學號|信箱|email|mail|帳號/i.test(c))) return i;
   }
   return 0;
 }
@@ -1311,6 +1519,7 @@ function dataRowCount(sh){ return sh.rows.filter(r=>r.some(c=>c!==null&&c!==''))
 function looksLikeRoster(sh){
   const hr=headerRowOf(sh.rows), r=(sh.rows[hr]||[]).map(c=>String(c==null?'':c));
   if(!r.some(c=>/姓名/.test(c))) return false;
+  if(isStaffImport()) return r.some(c=>/信箱|email|mail|帳號/i.test(c));
   if(!r.some(c=>/學號/.test(c))) return false;
   return sh.rows.slice(hr+1).some(row=>row.some(c=>/^\d{4,}$/.test(String(c==null?'':c).trim())));
 }
@@ -1322,14 +1531,8 @@ function handleFile(file){
       const sheets=await parseXlsx(fr.result);
       if(!sheets.length) throw new Error('找不到工作表');
       IMP={sheets,file:file.name};
-      $('#impSheets').innerHTML=sheets.map((sh,i)=>{
-        const n=dataRowCount(sh), ok=looksLikeRoster(sh);
-        return '<label'+(ok?'':' style="opacity:.6"')+'><input type="checkbox" value="'+i+'"'+(ok?' checked':'')+'>'
-          +esc(sh.name)+'（'+n+' 列'+(ok?'':'・非名單格式')+'）</label>';
-      }).join('');
-      $$('#impSheets input').forEach(c=>c.onchange=sheetChanged);
       msg(M,'已讀取 <b>'+esc(file.name)+'</b>，共 '+sheets.length+' 個工作表。','info');
-      $('#impStep2').classList.remove('hide'); sheetChanged();
+      $('#impStep2').classList.remove('hide'); renderSheetPicks();
     }catch(err){ msg(M,'讀取失敗：'+esc(err.message),'err'); }
   };
   fr.onerror=()=>msg(M,'檔案讀取失敗。','err');
@@ -1355,6 +1558,16 @@ function sheetChanged(){
   buildMap();
 }
 $('#impHeaderRow').onchange=buildMap;
+$('#impTarget').onchange=()=>{ if(IMP) renderSheetPicks(); };
+function renderSheetPicks(){
+  $('#impSheets').innerHTML=IMP.sheets.map(function(sh,i){
+    const n=dataRowCount(sh), ok=looksLikeRoster(sh);
+    return '<label'+(ok?'':' style="opacity:.6"')+'><input type="checkbox" value="'+i+'"'+(ok?' checked':'')+'>'
+      +esc(sh.name)+'（'+n+' 列'+(ok?'':'・非名單格式')+'）</label>';
+  }).join('');
+  $$('#impSheets input').forEach(c=>c.onchange=sheetChanged);
+  sheetChanged();
+}
 function headInfo(idx,useManual){
   const sh=IMP.sheets[idx];
   let hr=headerRowOf(sh.rows);
@@ -1369,9 +1582,10 @@ function headInfo(idx,useManual){
 function buildMap(){
   if(!IMP||!picked().length){ $('#impMap').innerHTML='<p class="muted">請至少勾選一個工作表。</p>'; return; }
   const {head}=headInfo(primary(),picked().length===1);
+  const FL=fieldList();
   $('#impMap').innerHTML=head.map((t,i)=>
     '<label class="field" style="margin-bottom:0"><span>'+(t?esc(t):'第 '+(i+1)+' 欄（無標題）')+'</span>'
-    +'<select data-col="'+i+'">'+FIELDS.map(f=>'<option value="'+f[0]+'"'+(f[0]===guess(t)?' selected':'')+'>'+f[1]+'</option>').join('')
+    +'<select data-col="'+i+'">'+FL.map(f=>'<option value="'+f[0]+'"'+(f[0]===guessFor(t)?' selected':'')+'>'+f[1]+'</option>').join('')
     +'</select></label>').join('');
   $('#impPreview').innerHTML='';
 }
@@ -1398,9 +1612,46 @@ function rowsFromSheet(idx,map,sheetName){
   }
   return out;
 }
+function staffRowsFrom(idx,map,sheetName){
+  const info=headInfo(idx,picked().length===1&&idx===primary());
+  const out=[];
+  for(let i=info.hr+1;i<info.sheet.rows.length;i++){
+    const r=info.sheet.rows[i]; if(!r||!r.length) continue;
+    const txt=c=>{const v=(c===undefined?null:r[c]);return v==null?'':String(v).trim();};
+    const raw=txt(map.acct);
+    const acct=raw.toLowerCase().split('@')[0].trim();
+    const name=txt(map.name);
+    if(!acct||!name) continue;
+    if(!/^[a-z0-9._-]+$/.test(acct)) continue;
+    out.push({acct,name,dept:txt(map.dept),subject:txt(map.subject),email:raw,from:sheetName});
+  }
+  return out;
+}
 function readRows(){
   const sel=picked();
   if(!sel.length) throw new Error('請至少勾選一個工作表');
+  if(isStaffImport()){
+    const p=primary(), single=sel.length===1;
+    const uiMap={}, labelMap={};
+    $$('#impMap select').forEach(x=>{ uiMap[+x.dataset.col]=x.value; });
+    headInfo(p,single).head.forEach((lab,i)=>{ if(lab) labelMap[lab]=uiMap[i]||'skip'; });
+    const all=[], seen={}; let dup=0;
+    sel.forEach(idx=>{
+      const info=headInfo(idx,single&&idx===p), map={};
+      info.head.forEach((lab,i)=>{
+        const f=(idx===p)?(uiMap[i]||'skip'):(lab&&labelMap[lab]!==undefined?labelMap[lab]:guessStaff(lab));
+        if(f!=='skip'&&map[f]===undefined) map[f]=i;
+      });
+      if(map.acct===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到「帳號／Email」欄位');
+      if(map.name===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到「姓名」欄位');
+      staffRowsFrom(idx,map,info.sheet.name).forEach(r=>{
+        if(seen[r.acct]){ dup++; return; }
+        seen[r.acct]=1; all.push(r);
+      });
+    });
+    all.dup=dup; all.sheets=sel.length; all.staff=true;
+    return all;
+  }
   const p=primary(), single=sel.length===1;
   const uiMap={}, labelMap={};
   $$('#impMap select').forEach(x=>{ uiMap[+x.dataset.col]=x.value; });
@@ -1432,6 +1683,17 @@ $('#btnPreview').onclick=()=>{
   try{
     const rows=readRows();
     if(!rows.length){ msg(P,'沒有讀到有效資料，請確認勾選的工作表與標題列。','err'); return; }
+    if(rows.staff){
+      const exist=rows.filter(r=>DB.staff[r.acct]), fresh=rows.filter(r=>!DB.staff[r.acct]);
+      let hs='<div class="notice info">讀到 <b>'+rows.length+'</b> 位教職員：既有 <b>'+exist.length+'</b> 位、新增 <b>'+fresh.length+'</b> 位。'
+        +(rows.dup?'另有 '+rows.dup+' 筆帳號重複已略過。':'')+'</div>'
+        +'<h3>資料預覽（前 10 筆）</h3><div class="scroll"><table><thead><tr><th>帳號</th><th>姓名</th><th>單位</th><th>科目</th></tr></thead><tbody>'
+        +rows.slice(0,10).map(r=>'<tr><td>'+esc(r.acct)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.dept)+'</td><td>'+esc(r.subject)+'</td></tr>').join('')
+        +'</tbody></table></div><div class="row" style="margin-top:14px"><button class="btn" id="btnApply">確認匯入</button></div>';
+      P.innerHTML=hs;
+      $('#btnApply').onclick=()=>applyImport(rows,'staff');
+      return;
+    }
     const store=target==='roster'?DB.roster:DB.students;
     const exist=rows.filter(r=>store[r.sid]), fresh=rows.filter(r=>!store[r.sid]);
     const changed=exist.filter(r=>r.cls&&store[r.sid].cls&&store[r.sid].cls!==r.cls);
@@ -1463,13 +1725,16 @@ $('#btnPreview').onclick=()=>{
 function snapshot(label){
   DB.undo={ts:new Date().toISOString(),label,
     students:JSON.parse(JSON.stringify(DB.students)),
-    roster:JSON.parse(JSON.stringify(DB.roster))};
+    roster:JSON.parse(JSON.stringify(DB.roster)),
+    staff:JSON.parse(JSON.stringify(DB.staff))};
 }
 function undoAvailable(){ return DB.undo&&DB.undo.ts; }
 function doUndo(){
   if(!undoAvailable()) return;
   if(!confirm('要復原到「'+DB.undo.label+'」之前的名單狀態嗎？\n（預約紀錄不受影響）')) return;
-  DB.students=DB.undo.students; DB.roster=DB.undo.roster; DB.undo=null;
+  DB.students=DB.undo.students; DB.roster=DB.undo.roster;
+  if(DB.undo.staff) DB.staff=DB.undo.staff;
+  DB.undo=null;
   save(); renderAdmin();
   msg($('#dataMsg'),'已復原名單。','info');
   msg($('#impPreview'),'已復原到匯入前的名單。','info');
@@ -1478,6 +1743,11 @@ function applyImport(rows,target){
   snapshot('匯入 '+(IMP?IMP.file:'名單'));
   let add=0,upd=0,skip=0;
   rows.forEach(r=>{
+    if(target==='staff'){
+      if(DB.staff[r.acct]){ DB.staff[r.acct]={acct:r.acct,name:r.name,dept:r.dept,subject:r.subject,email:r.email}; upd++; }
+      else{ DB.staff[r.acct]={acct:r.acct,name:r.name,dept:r.dept,subject:r.subject,email:r.email}; add++; }
+      return;
+    }
     if(target==='roster'){
       const cur=DB.roster[r.sid];
       if(cur){ if(r.name)cur.name=r.name; if(r.cls)cur.cls=r.cls; if(r.seat)cur.seat=r.seat; upd++; }
@@ -1511,7 +1781,7 @@ function applyImport(rows,target){
     }
   });
   save();
-  $('#impPreview').innerHTML='<div class="notice info">匯入完成：新增 <b>'+add+'</b> 人、更新 <b>'+upd+'</b> 人'
+  $('#impPreview').innerHTML='<div class="notice info">匯入完成：新增 <b>'+add+'</b> 筆、更新 <b>'+upd+'</b> 筆'
     +(skip?'、略過 '+skip+' 筆':'')+'。</div>'
     +'<p class="muted">匯錯了嗎？可以馬上復原到匯入前的狀態。</p>'
     +'<button class="btn warn" id="btnUndoImp">復原這次匯入</button>';
@@ -1520,33 +1790,63 @@ function applyImport(rows,target){
 }
 
 /* ---- 學生資料 ---- */
-function store(){ return $('#sSource').value==='roster'?DB.roster:DB.students; }
+function srcKind(){ return $('#sSource').value; }
+function store(){ const k=srcKind(); return k==='roster'?DB.roster:k==='staff'?DB.staff:DB.students; }
 function filtered(){
-  const c=$('#sCls').value, k=$('#sKey').value.trim(), u=$('#sUndone').checked, isC=$('#sSource').value==='clean';
+  const c=$('#sCls').value, k=$('#sKey').value.trim(), u=$('#sUndone').checked, kind=srcKind();
+  if(kind==='staff'){
+    return Object.values(DB.staff).filter(t=>{
+      if(c&&(t.dept||'')!==c) return false;
+      if(k&&!((t.acct||'').includes(k.toLowerCase())||(t.name||'').includes(k))) return false;
+      return true;
+    }).sort((a,b)=>((a.dept||'')+(a.name||'')).localeCompare((b.dept||'')+(b.name||''),'zh-Hant'));
+  }
   return Object.values(store()).filter(s=>{
     if(c&&s.cls!==c) return false;
     if(k&&!(s.sid.includes(k)||(s.name||'').includes(k))) return false;
-    if(u&&isC&&Math.max(0,(s.required||0)-recs(s).length)<=0) return false;
+    if(u&&kind==='clean'&&remainSlots(s)<=0) return false;
     return true;
   }).sort((a,b)=>((a.cls||'')+(a.seat||'')).localeCompare((b.cls||'')+(b.seat||''),'zh-Hant'));
 }
 function renderStuTable(){
-  const isC=$('#sSource').value==='clean';
-  const cls=new Set(); Object.values(store()).forEach(s=>{if(s.cls)cls.add(s.cls);});
+  const kind=srcKind(), isC=kind==='clean', isS=kind==='staff';
+  const cls=new Set();
+  Object.values(store()).forEach(s=>{ const v=isS?s.dept:s.cls; if(v) cls.add(v); });
   const sel=$('#sCls'), keep=sel.value;
   sel.innerHTML='<option value="">全部</option>'+Array.from(cls).sort().map(c=>'<option>'+esc(c)+'</option>').join('');
   sel.value=keep;
   $('#sUndone').parentElement.style.display=isC?'':'none';
+  $('#staffAdd').classList.toggle('hide',!isS);
+  $('#stuAdd').classList.toggle('hide',isS);
+  $('#wrapNsReq').classList.toggle('hide',!isC);
   const list=filtered();
   $('#sCount').textContent='共 '+list.length+' 人';
+  if(isS){
+    $('#tblStu').querySelector('thead').innerHTML='<tr><th>單位</th><th>姓名</th><th>科目</th><th>帳號</th><th>登記需求</th><th>操作</th></tr>';
+    $('#tblStu').querySelector('tbody').innerHTML=list.map(t=>{
+      const n=Object.keys(DB.demands).reduce((a,d)=>a+demandsOf(d).filter(x=>x.byAcct===t.acct).length,0);
+      return '<tr><td>'+esc(t.dept||'')+'</td><td>'+esc(t.name||'')+'</td><td>'+esc(t.subject||'')+'</td>'
+        +'<td class="num">'+esc(t.acct)+'</td><td class="num">'+n+'</td>'
+        +'<td><button class="btn sm flat" data-rmstaff="'+esc(t.acct)+'">刪除</button></td></tr>';
+    }).join('');
+    $('#tblStu').querySelectorAll('[data-rmstaff]').forEach(b=>b.onclick=()=>{
+      const t=DB.staff[b.dataset.rmstaff]; if(!t) return;
+      if(!confirm('刪除教職員 '+(t.name||'')+'（'+t.acct+'）？\n他登記過的需求不會被刪除。')) return;
+      snapshot('刪除教職員 '+(t.name||t.acct));
+      delete DB.staff[b.dataset.rmstaff]; save(); renderAdmin();
+      msg($('#sMsg'),'已刪除。','info');
+    });
+    return;
+  }
   $('#tblStu').querySelector('thead').innerHTML= isC
-    ? '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>原班級</th><th>應打掃</th><th>已完成</th><th>已預約</th><th>尚需</th><th>操作</th></tr>'
+    ? '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>原班級</th><th>應打掃次數</th><th>暑假完成</th><th>應補場次</th><th>已補場次</th><th>已預約</th><th>尚缺場次</th><th>操作</th></tr>'
     : '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>愛校預約</th><th>操作</th></tr>';
   $('#tblStu').querySelector('tbody').innerHTML=list.slice(0,800).map(s=> isC
     ? '<tr><td>'+esc(s.cls||'')+'</td><td class="num">'+esc(s.seat||'')+'</td><td>'+esc(s.name||'')+'</td><td class="num">'+esc(s.sid)+'</td>'
       +'<td class="muted">'+esc((s.oldCls||'')+' '+(s.oldSeat||''))+'</td><td class="num">'+(s.required||0)+'</td>'
-      +'<td class="num">'+recs(s).length+'</td><td class="num">'+activeBookings(s.sid,'clean').length+'</td>'
-      +'<td class="num"><b>'+Math.max(0,(s.required||0)-recs(s).length)+'</b></td>'
+      +'<td class="num">'+summerRecs(s).length+'</td><td class="num">'+needSlotsTotal(s)+'</td>'
+      +'<td class="num">'+doneSlots(s)+'</td><td class="num">'+activeBookings(s.sid,'clean').length+'</td>'
+      +'<td class="num"><b>'+remainSlots(s)+'</b></td>'
       +'<td><button class="btn sm flat" data-ed="'+esc(s.sid)+'">編輯</button> '
       +'<button class="btn sm flat" data-rmstu="'+esc(s.sid)+'">刪除</button></td></tr>'
     : '<tr><td>'+esc(s.cls||'')+'</td><td class="num">'+esc(s.seat||'')+'</td><td>'+esc(s.name||'')+'</td>'
@@ -1556,8 +1856,42 @@ function renderStuTable(){
   $('#tblStu').querySelectorAll('[data-rmstu]').forEach(b=>b.onclick=()=>removeStudent(b.dataset.rmstu));
 }
 ['#sSource','#sCls','#sKey','#sUndone'].forEach(id=>{const el=$(id);el.onchange=renderStuTable;el.oninput=renderStuTable;});
+$('#btnAddStu').onclick=()=>{
+  const kind=srcKind(), M=$('#sMsg');
+  const sid=$('#nsSid').value.trim(), nm=$('#nsName').value.trim();
+  const cls=$('#nsCls').value.trim(), seat=$('#nsSeat').value.trim();
+  if(!sid||!nm){ msg(M,'學號與姓名為必填。','warn'); return; }
+  if(!/^\d{4,}$/.test(sid)){ msg(M,'學號必須是 4 位數以上的數字。','warn'); return; }
+  const norm=(function(v){const d=String(v).replace(/\D/g,'');return d?pad2(String(parseInt(d,10))):String(v).trim();})(seat);
+  if(kind==='clean'){
+    const req=parseInt($('#nsReq').value,10)||0;
+    const cur=DB.students[sid], dup=!!cur;
+    snapshot(dup?'更新學生 '+nm:'新增學生 '+nm);
+    DB.students[sid]=Object.assign({records:[]},cur||{},{sid,name:nm,cls,seat:norm,required:req});
+    save(); msg(M,(dup?'已更新 ':'已新增 ')+esc(nm)+'（'+esc(sid)+'）到補打掃名單。','info');
+  }else{
+    const dup=!!DB.roster[sid];
+    snapshot(dup?'更新學生 '+nm:'新增學生 '+nm);
+    DB.roster[sid]={sid,name:nm,cls,seat:norm};
+    save(); msg(M,(dup?'已更新 ':'已新增 ')+esc(nm)+'（'+esc(sid)+'）到全校名單。','info');
+  }
+  ['#nsSid','#nsName','#nsSeat'].forEach(x=>$(x).value='');
+  renderStuTable();
+};
+$('#btnAddStaff').onclick=()=>{
+  const a=$('#stAcct').value.trim().toLowerCase().split('@')[0];
+  const n=$('#stName').value.trim(), d=$('#stDept').value.trim(), sj=$('#stSubj').value.trim();
+  const M=$('#sMsg');
+  if(!a||!n){ msg(M,'帳號與姓名為必填。','warn'); return; }
+  if(!/^[a-z0-9._-]+$/.test(a)){ msg(M,'帳號只能是英數字（信箱 @ 前面那一段）。','warn'); return; }
+  const dup=!!DB.staff[a];
+  DB.staff[a]={acct:a,name:n,dept:d,subject:sj,email:''};
+  save(); ['#stAcct','#stName','#stDept','#stSubj'].forEach(x=>$(x).value='');
+  msg(M,(dup?'已更新 ':'已新增 ')+esc(n)+'（'+esc(a)+'）。','info');
+  renderStuTable();
+};
 function removeStudent(sid){
-  const isC=$('#sSource').value==='clean';
+  const isC=srcKind()==='clean';
   const src=isC?DB.students:DB.roster, p=src[sid]; if(!p) return;
   const bk=DB.bookings.filter(b=>b.sid===sid&&b.status==='booked').length;
   const other=isC?DB.roster[sid]:DB.students[sid];
@@ -1574,14 +1908,14 @@ function removeStudent(sid){
   $('#btnUndoDel').onclick=doUndo;
 }
 $('#btnClearList').onclick=()=>{
-  const isC=$('#sSource').value==='clean';
-  const label=isC?'補打掃名單':'全校名單';
-  const n=Object.keys(isC?DB.students:DB.roster).length;
+  const kind=srcKind();
+  const label=kind==='clean'?'補打掃名單':kind==='staff'?'教職員名單':'全校學生名單';
+  const n=Object.keys(store()).length;
   if(!n){ msg($('#sMsg'),'這份名單本來就是空的。','warn'); return; }
   if(!confirm('要清空整份「'+label+'」嗎？共 '+n+' 人。\n（預約紀錄與另一份名單不受影響，之後仍可按復原）')) return;
   if(!confirm('再次確認：'+label+' 的 '+n+' 筆資料將被清除。')) return;
   snapshot('清空'+label);
-  if(isC) DB.students={}; else DB.roster={};
+  if(kind==='clean') DB.students={}; else if(kind==='staff') DB.staff={}; else DB.roster={};
   save(); renderAdmin();
   msg($('#sMsg'),'已清空'+label+'（'+n+' 人）。','info');
   $('#sMsg').insertAdjacentHTML('beforeend','<button class="btn sm warn" id="btnUndoClr">復原清空</button>');
@@ -1596,10 +1930,11 @@ function editStu(sid){
     +'<label class="field" style="margin-bottom:0"><span>座號</span><input id="eSeat" value="'+esc(s.seat||'')+'" style="width:90px"></label>'
     +'<label class="field" style="margin-bottom:0"><span>應打掃次數</span><input id="eReq" type="number" min="0" value="'+(s.required||0)+'" style="width:110px"></label>'
     +'<button class="btn sm" id="eSave">儲存</button></div>'
-    +'<h3 style="margin-top:16px">已完成 '+rs.length+' 次</h3>'
+    +'<p class="muted" style="margin-top:14px">暑假已完成 '+summerRecs(s).length+' 次，應補 '+needSlotsTotal(s)+' 場，已補 '+doneSlots(s)+' 場，尚缺 '+remainSlots(s)+' 場。</p>'
+    +'<h3 style="margin-top:10px">完成紀錄</h3>'
     +(rs.length?'<table><thead><tr><th>日期／代碼</th><th>地點</th><th>來源</th><th></th></tr></thead><tbody>'
       +rs.map((r,i)=>'<tr><td class="num">'+esc(recLabel(r))+'</td><td>'+esc(r.place||'—')+'</td>'
-        +'<td>'+(r.src==='import'?'登記表':r.src==='booking'?'預約完成':'人工補登')+'</td>'
+        +'<td>'+(r.src==='import'?'暑假登記表（1 次）':r.src==='booking'?'預約完成（1 場）':'人工補登（1 場）')+'</td>'
         +'<td><button class="btn sm flat" data-dr="'+i+'">刪除</button></td></tr>').join('')+'</tbody></table>'
       :'<p class="muted">尚無紀錄。</p>')
     +'<div class="row" style="margin-top:12px;align-items:flex-end">'
@@ -1688,27 +2023,69 @@ $('#btnBackupJson').onclick=()=>{
   msg($('#dataMsg'),'JSON 備份已下載，請存到雲端硬碟或隨身碟。','info'); backupHint();
 };
 $('#btnBackupXlsx').onclick=()=>{
-  const love=[['日期','星期','時段','地點','核發教師','科目','班級','座號','姓名','學號','登記時間']];
-  const clean=[['日期','星期','時段','地點','班級','座號','姓名','學號','應打掃','已完成','尚需']];
-  DB.bookings.filter(b=>b.status==='booked').sort((a,b)=>a.date<b.date?-1:1).forEach(b=>{
-    const p=person(b.sid)||{};
-    if(b.type==='love') love.push([b.date,wd(b.date),b.slot,b.place,b.teacher||'',b.subject||'',
-      p.cls||'',p.seat||'',p.name||'',b.sid,(b.created||'').slice(0,16).replace('T',' ')]);
-    else{ const c=DB.students[b.sid]||{};
-      clean.push([b.date,wd(b.date),b.slot,b.place,p.cls||'',p.seat||'',p.name||'',b.sid,
-        c.required||0,recs(c).length,Math.max(0,(c.required||0)-recs(c).length)]); }
+  const PINK=2, GREY=3, HEAD=1, PHEAD=4;
+  const stu=Object.values(DB.students).sort((x,y)=>
+    ((x.cls||'')+(x.seat||'')).localeCompare((y.cls||'')+(y.seat||''),'zh-Hant'));
+  /* 暑假欄位數：至少 5，若有人超過就加寬 */
+  let sumCols=5, slotCols=15;
+  stu.forEach(t=>{
+    sumCols=Math.max(sumCols,summerRecs(t).length);
+    slotCols=Math.max(slotCols,needSlotsTotal(t),doneSlots(t));
   });
-  const roster=[['班級','座號','姓名','學號']];
-  Object.values(DB.roster).sort((a,b)=>((a.cls||'')+(a.seat||'')).localeCompare((b.cls||'')+(b.seat||''),'zh-Hant'))
-    .forEach(s=>roster.push([s.cls||'',s.seat||'',s.name||'',s.sid]));
-  const cl=[['班級','座號','姓名','學號','原班級','應打掃','已完成','尚需','完成紀錄']];
-  Object.values(DB.students).sort((a,b)=>((a.cls||'')+(a.seat||'')).localeCompare((b.cls||'')+(b.seat||''),'zh-Hant'))
-    .forEach(s=>cl.push([s.cls||'',s.seat||'',s.name||'',s.sid,s.oldCls||'',s.required||0,recs(s).length,
-      Math.max(0,(s.required||0)-recs(s).length),recs(s).map(recLabel).join(' ')]));
-  const x=buildXlsx([{name:'愛校預約',rows:love},{name:'補打掃',rows:clean},
-    {name:'補打掃名單',rows:cl},{name:'全校名單',rows:roster}]);
-  dl(new Blob([x],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'補掃愛校名單_'+today()+'.xlsx');
-  msg($('#dataMsg'),'Excel 已下載（4 個分頁）。這份不能倒回系統，還原請用 JSON。','info');
+  const CN=['第一次','第二次','第三次','第四次','第五次','第六次','第七次','第八次','第九次','第十次'];
+  const sumHead=[]; for(let i=0;i<sumCols;i++) sumHead.push({v:(CN[i]||('第'+(i+1)+'次'))+'返掃',s:HEAD});
+  const slotHead=[]; for(let i=0;i<slotCols;i++) slotHead.push({v:'補'+(i+1),s:PHEAD});
+
+  /* 1) 補打掃進度 */
+  const prog=[['學號','班級','座號','姓名','原班級','應打掃次數','暑假已完成','應補場次','已補場次','尚缺場次']
+    .map(h=>({v:h,s:HEAD})).concat(sumHead,slotHead)];
+  stu.forEach(t=>{
+    const sm=summerRecs(t).map(r=>r.mark||recLabel(r));
+    const sl=slotRecs(t).slice().sort((p,q)=>(p.date||'')<(q.date||'')?-1:1)
+      .map(r=>r.date?r.date.slice(5).replace('-',''):(r.mark||'✓'));
+    const need=needSlotsTotal(t);
+    const row=[t.sid,t.cls||'',t.seat||'',t.name||'',(t.oldCls||'')+((t.oldSeat)?' '+t.oldSeat:''),
+      t.required||0,summerRecs(t).length,need,doneSlots(t),remainSlots(t)];
+    for(let i=0;i<sumCols;i++) row.push(sm[i]||'');
+    for(let i=0;i<slotCols;i++){
+      if(i<need) row.push({v:sl[i]||'',s:PINK});
+      else row.push({v:'',s:GREY});
+    }
+    prog.push(row);
+  });
+
+  /* 2) 各班核對表（沿用原本欄位順序，可印出簽名） */
+  const chk=[['班級','班號','座號','姓名','應打掃次數'].map(h=>({v:h,s:HEAD}))
+    .concat(sumHead,[{v:'暑假已完成',s:HEAD},{v:'應補場次',s:HEAD}],slotHead,
+      [{v:'尚缺場次',s:HEAD},{v:'備註',s:HEAD},{v:'簽名欄',s:HEAD},{v:'原班級',s:HEAD},{v:'學號',s:HEAD}])];
+  stu.forEach(t=>{
+    const sm=summerRecs(t).map(r=>r.mark||recLabel(r));
+    const sl=slotRecs(t).slice().sort((p,q)=>(p.date||'')<(q.date||'')?-1:1)
+      .map(r=>r.date?r.date.slice(5).replace('-',''):(r.mark||'✓'));
+    const need=needSlotsTotal(t);
+    const row=[t.cls||'',t.classNo||'',t.seat||'',t.name||'',t.required||0];
+    for(let i=0;i<sumCols;i++) row.push(sm[i]||'');
+    row.push(summerRecs(t).length,need);
+    for(let i=0;i<slotCols;i++) row.push(i<need?{v:sl[i]||'',s:PINK}:{v:'',s:GREY});
+    row.push(remainSlots(t),t.note||'','',(t.oldCls||'')+((t.oldSeat)?' '+t.oldSeat:''),t.sid);
+    chk.push(row);
+  });
+
+  /* 3) 每日名單（可印出當簽到表） */
+  const day=[['日期','星期','時段','類別','地點','核發教師','班級','座號','姓名','簽名'].map(h=>({v:h,s:HEAD}))];
+  const dates=Array.from(new Set(DB.bookings.filter(b=>b.status==='booked').map(b=>b.date))).sort();
+  dates.forEach(d=>{
+    DB.bookings.filter(b=>b.date===d&&b.status==='booked')
+      .sort((x,y)=>{const A=person(x.sid)||{},B=person(y.sid)||{};
+        return ((A.cls||'')+(A.seat||'')).localeCompare((B.cls||'')+(B.seat||''),'zh-Hant');})
+      .forEach(b=>{const p=person(b.sid)||{};
+        day.push([d,'週'+wd(d),b.slot,TYPE[b.type].name,b.place,b.teacher||'',p.cls||'',p.seat||'',p.name||'','']);});
+    day.push([]);
+  });
+
+  const x=buildXlsx([{name:'補打掃進度',rows:prog},{name:'各班核對表',rows:chk},{name:'每日名單',rows:day}]);
+  dl(new Blob([x],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'返掃愛校_'+today()+'.xlsx');
+  msg($('#dataMsg'),'Excel 已下載（補打掃進度、各班核對表、每日名單）。粉紅欄是開學後的中午補掃，深灰是不需要用到的場次。這份不能倒回系統，還原請用 JSON。','info');
 };
 $('#fileRestore').onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
@@ -1727,6 +2104,7 @@ $('#fileRestore').onchange=e=>{
 $('#btnSaveSet').onclick=()=>{
   const sl=$('#setSlot').value.trim(); if(sl) DB.settings.slot=sl;
   DB.settings.loveMax=Math.max(1,parseInt($('#setMax').value,10)||3);
+  DB.settings.unit=Math.max(1,parseInt($('#setUnit').value,10)||3);
   DB.settings.idle=Math.max(0,parseInt($('#setIdle').value,10)||0);
   DB.settings.startYear=parseInt($('#setYear').value,10)||DB.settings.startYear;
   save(); msg($('#dataMsg'),'設定已儲存。','info'); renderAdmin();
