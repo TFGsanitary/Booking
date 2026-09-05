@@ -110,7 +110,10 @@ tbody tr:last-child td{border-bottom:0}
 
 /* ---- 登入 ---- */
 .gate{max-width:1240px;margin:16px auto;padding:0 14px}
-.gatesplit{display:grid;grid-template-columns:minmax(310px,380px) minmax(400px,1fr);gap:14px;align-items:start}
+.gatesplit{display:grid;grid-template-columns:minmax(310px,380px) minmax(400px,1fr);gap:14px;align-items:stretch}
+.gatesplit>.card{height:100%}
+.gatesplit>.card:last-child{display:flex;flex-direction:column}
+.gatesplit>.card:last-child .legend{margin-top:auto;padding-top:14px}
 @media(max-width:800px){.gatesplit{grid-template-columns:1fr}}
 .gate .card{padding:22px}
 .hero{text-align:center;padding-bottom:16px;margin-bottom:18px;position:relative}
@@ -190,14 +193,22 @@ header.top .brand{display:flex;align-items:center;gap:10px}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .cal .hd{text-align:center;font-size:.78rem;color:var(--ink-2);padding:2px 0;font-weight:700}
 .day{border-radius:11px;min-height:76px;padding:5px 5px;position:relative;overflow:hidden;
-  background:#eae8e1;box-shadow:var(--in);color:#a8a49c}
+  background:#f6f5f1;color:#b6b2aa;
+  box-shadow:inset 2px 2px 4px rgba(158,150,136,.16), inset -2px -2px 4px rgba(255,255,255,.9)}
 .need{font-size:.58rem;line-height:1.5;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dotlab{font-size:.58rem;color:#9aa09a;margin-top:3px;line-height:1.25;white-space:nowrap}
-.day.out{opacity:.45}
-.day.open{background:linear-gradient(150deg,#ffffff,#f2faf5);box-shadow:var(--up);color:var(--ink);cursor:pointer}
-.day.open::after{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--mint)}
+.day.out{opacity:.55}
+.day.open{background:linear-gradient(150deg,#ffffff,#f4fbf7);box-shadow:var(--up);color:var(--ink);cursor:pointer}
+.day.open::after{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;
+  background:linear-gradient(180deg,var(--mint-2),var(--mint-d))}
 .day.open:hover{box-shadow:var(--up-lg)}
-.day.today{box-shadow:var(--in),inset 0 0 0 2px var(--mint-d)}
+.day.closed{background:#e9e9e6;color:#9fa29f;cursor:pointer;
+  box-shadow:inset 2px 2px 5px rgba(145,145,140,.18),inset -2px -2px 5px rgba(255,255,255,.72)}
+.day.closed .d,.day.closed .dotlab{color:#969996}
+.day.closed:hover{background:#e4e4e1}
+/* 今天：可預約才用綠框，不開放時用中性灰框，避免誤會 */
+.day.today{box-shadow:inset 2px 2px 4px rgba(158,150,136,.16), inset -2px -2px 4px rgba(255,255,255,.9),
+  inset 0 0 0 2px #d3cfc6}
 .day.open.today{box-shadow:var(--up),inset 0 0 0 2px var(--mint-d)}
 .day .d{font-size:.82rem;font-weight:700;line-height:1.3}
 .day.open .d{color:var(--mint-ink)}
@@ -208,6 +219,7 @@ header.top .brand{display:flex;align-items:center;gap:10px}
 .legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;font-size:.8rem;color:var(--ink-2);font-weight:600}
 .legend i{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:-1px;
   box-shadow:inset -1px -1px 2px rgba(0,0,0,.16), inset 1px 1px 2px rgba(255,255,255,.65)}
+.legend i.pale{box-shadow:0 0 0 1px #cfcabf inset}
 
 /* ---- 對話框 ---- */
 dialog{border:0;border-radius:var(--r);padding:0;max-width:620px;width:calc(100% - 32px);
@@ -288,7 +300,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
 
   <div class="card">
     <h2>預約日曆</h2>
-    <p class="muted" style="margin-top:0">白色是可預約的日期，灰色不開放。點日期可看各地點的需求與目前預約人數。</p>
+    <p class="muted" style="margin-top:0">左側有綠線的是可預約的日期，灰色不開放。點日期可看當天的需求與預約人數。</p>
     <div class="calbar" style="margin-top:14px">
       <button class="btn sm flat" id="calPrev">←</button>
       <b id="calTitle" class="num"></b>
@@ -298,7 +310,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
     <div class="legend">
       <span><i style="background:#e79a96"></i>愛校服務</span>
       <span><i style="background:#93bde4"></i>補打掃</span>
-      <span><i style="background:#eae8e1;box-shadow:none"></i>灰色＝不開放</span>
+      <span><i style="background:#f0efe9;box-shadow:0 0 0 1px #dedad2 inset"></i>灰色不開放預約</span>
       <span>不會顯示任何學生姓名</span>
     </div>
   </div>
@@ -337,7 +349,6 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
     <p class="muted" id="loveStatus"></p>
     <div class="row" style="align-items:flex-end">
       <label class="field" style="min-width:210px;flex:1;margin-bottom:0"><span>日期</span><select id="loveDate"></select></label>
-      <label class="field" style="min-width:250px;flex:1.4;margin-bottom:0"><span>地點與核發老師</span><select id="lovePlace"></select></label>
       <button class="btn" id="btnLoveBook">加入預約</button>
     </div>
     <div id="loveList" style="margin-top:20px"></div>
@@ -355,7 +366,6 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
     </div>
     <div class="row" style="align-items:flex-end">
       <label class="field" style="min-width:210px;flex:1;margin-bottom:0"><span>日期</span><select id="cleanDate"></select></label>
-      <label class="field" style="min-width:210px;flex:1;margin-bottom:0"><span>打掃地點</span><select id="cleanPlace"></select></label>
       <button class="btn" id="btnCleanBook">加入預約</button>
     </div>
     <div id="cleanList" style="margin-top:20px"></div>
@@ -372,7 +382,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
 <section id="viewTea" class="wrap hide">
   <div class="card">
     <h2>登記需求時段</h2>
-    <p class="muted" style="margin-top:0">時段固定為中午 12:30–13:00。學生只能預約已經登記、且尚未額滿的時段。</p>
+    <p class="muted" style="margin-top:0">時段固定為中午 12:30–13:00。登記需求是讓衛生組知道你這天需要幾個人，學生當天到學務處集合後由衛生組分派。</p>
     <div class="row" style="align-items:flex-end;margin-top:14px">
       <label class="field" style="margin-bottom:0"><span>類別</span><select id="tType">
         <option value="love">愛校服務</option><option value="clean">補打掃</option></select></label>
@@ -409,7 +419,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
   <div id="admDemand" class="admpane">
     <div class="card">
       <h2>登記需求時段</h2>
-      <p class="muted">時段固定為中午 12:30–13:00。只有登記過需求、且未被停用的日期，學生才能預約。</p>
+      <p class="muted">時段固定為中午 12:30–13:00。平日預設開放學生預約；這裡登記的需求是給衛生組當天分派人力的依據，不影響學生能不能預約。</p>
       <div class="row" style="align-items:flex-end;margin-top:14px">
         <label class="field" style="margin-bottom:0"><span>類別</span><select id="dType">
           <option value="love">愛校服務</option><option value="clean">補打掃</option></select></label>
@@ -417,7 +427,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
         <label class="field" style="margin-bottom:0;flex:1;min-width:170px"><span>地點</span><input id="dPlace" placeholder="學務處、教務處、中庭…"></label>
         <label class="field" style="margin-bottom:0"><span>需求人數</span><input type="number" id="dCap" value="3" min="1" style="width:118px"></label>
         <label class="field" style="margin-bottom:0" id="wrapTeacher"><span>核發教師</span><input id="dTeacher" placeholder="姓名" style="width:135px"></label>
-        <label class="field" style="margin-bottom:0" id="wrapSubject"><span>科目</span><input id="dSubject" placeholder="國文" style="width:115px"></label>
+        <label class="field" style="margin-bottom:0" id="wrapSubject"><span>科目/ 處室</span><input id="dSubject" placeholder="國文/ 教務處" style="width:135px"></label>
         <button class="btn" id="btnAddDemand">新增</button>
       </div>
       <h3 style="margin-top:22px">批次套用到一段期間</h3>
@@ -467,16 +477,13 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
       <div class="legend">
         <span><i style="background:#e79a96"></i>愛校服務</span>
         <span><i style="background:#93bde4"></i>補打掃</span>
-        <span><i style="background:#eae8e1;box-shadow:none"></i>灰色＝未登記需求或已停用</span>
+        <span><i style="background:#e9e9e6;box-shadow:0 0 0 1px #d6d6d1 inset"></i>淺灰色為整日停用／不開放</span>
       </div>
     </div>
     <div class="card">
       <h2>批次停用</h2>
-      <p class="muted">段考週、校慶等連續多天停用時使用。已有預約或已過去的日期會自動略過。</p>
+      <p class="muted">段考週、校慶等連續多天停用時使用；一次停用整天，愛校、補打掃與教師需求登記都不開放。已有預約或已過去的日期會自動略過。</p>
       <div class="row" style="align-items:flex-end;margin-top:14px">
-        <label class="field" style="margin-bottom:0"><span>類別</span><select id="cType">
-          <option value="love">愛校服務</option><option value="clean">補打掃</option>
-          <option value="both">兩者都停用</option></select></label>
         <label class="field" style="margin-bottom:0"><span>起始日</span><input type="date" id="cFrom"></label>
         <label class="field" style="margin-bottom:0"><span>結束日（可留空＝單日）</span><input type="date" id="cTo"></label>
         <button class="btn warn" id="btnClose">設為停用</button>
@@ -496,8 +503,12 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
             <option value="roster">全校名單（愛校服務用：學號、姓名、班級、座號）</option>
             <option value="clean">補打掃名單（含應打掃次數與已完成紀錄）</option>
             <option value="classonly">只更新補打掃名單的班級座號（換班對照）</option>
-            <option value="staff">教職員名單（教師登入用：帳號、姓名、單位、科目）</option>
+            <option value="staff">教職員名單（教師登入用：Email／帳號、姓名、單位、科目/ 處室）</option>
           </select></label>
+      </div>
+      <div class="row" id="curListBox" style="margin-bottom:14px;padding:12px 16px;border-radius:var(--r-sm);background:var(--surface);box-shadow:var(--in-sm)">
+        <span class="muted" id="curListInfo" style="flex:1"></span>
+        <button class="btn sm warn" id="btnClearHere">清空這份名單</button>
       </div>
       <label class="filelabel" for="fileXlsx">點此選擇 Excel 檔（.xlsx），或將檔案拖曳到這裡</label>
       <input type="file" id="fileXlsx" accept=".xlsx" class="hide">
@@ -511,6 +522,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
         <label class="field" style="margin-bottom:0"><span>標題列</span><input id="impHeaderRow" type="number" min="1" style="width:118px"></label>
         <span class="muted" id="impHeadNote"></span>
       </div>
+      <p class="muted" style="margin-top:0">系統會依 Excel 的實際標題自動辨識每個欄位；下拉選單只需決定「匯入」或「不匯入」。Email／電子郵件欄也會自動辨識。「已打掃次數」「未打掃次數」這類統計欄位由系統自動計算，不需要匯入。重複匯入時只加入新學生與尚未存在的完成日期，不會覆蓋舊紀錄；空白返掃欄代表未完成，不會建立紀錄。</p>
       <div class="mapgrid" id="impMap"></div>
       <div class="row" style="margin-top:18px">
         <button class="btn" id="btnPreview">核對並預覽</button>
@@ -528,7 +540,7 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
           <option value="clean">補打掃名單</option><option value="roster">全校學生名單</option>
           <option value="staff">教職員名單</option></select></label>
         <label class="field" style="margin-bottom:0"><span>班級</span><select id="sCls"><option value="">全部</option></select></label>
-        <label class="field" style="margin-bottom:0"><span>搜尋</span><input id="sKey" placeholder="學號或姓名" style="width:175px"></label>
+        <label class="field" style="margin-bottom:0"><span>搜尋</span><input id="sKey" placeholder="學號或姓名（忽略空格）" style="width:210px"></label>
         <label class="muted" style="display:flex;align-items:center;gap:7px;font-weight:600"><input type="checkbox" id="sUndone"> 只看未完成</label>
         <span class="muted" id="sCount"></span>
         <button class="btn sm warn" id="btnClearList" style="margin-left:auto">清空這份名單</button>
@@ -543,10 +555,10 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
         <button class="btn sm" id="btnAddStu">手動新增</button>
       </div>
       <div class="row hide" id="staffAdd" style="align-items:flex-end;margin-bottom:14px">
-        <label class="field" style="margin-bottom:0"><span>帳號</span><input id="stAcct" placeholder="信箱 @ 前面" style="width:150px"></label>
+        <label class="field" style="margin-bottom:0"><span>Email／帳號</span><input id="stAcct" placeholder="完整 Email 或帳號" style="width:190px"></label>
         <label class="field" style="margin-bottom:0"><span>姓名</span><input id="stName" style="width:130px"></label>
         <label class="field" style="margin-bottom:0"><span>單位</span><input id="stDept" placeholder="教務處" style="width:130px"></label>
-        <label class="field" style="margin-bottom:0"><span>科目</span><input id="stSubj" placeholder="國文" style="width:120px"></label>
+        <label class="field" style="margin-bottom:0"><span>科目/ 處室</span><input id="stSubj" placeholder="國文/ 教務處" style="width:135px"></label>
         <button class="btn sm" id="btnAddStaff">手動新增</button>
       </div>
       <div class="scroll"><table id="tblStu"><thead></thead><tbody></tbody></table></div>
@@ -609,8 +621,8 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
       </div>
     </div>
     <div class="card">
-      <h2>復原</h2>
-      <p class="muted" style="margin-top:0">匯入錯檔案、或刪錯名單時，可以退回上一步。只保留最近一次，且不影響預約紀錄。</p>
+      <h2>復原名單</h2>
+      <p class="muted" style="margin-top:0">匯入錯檔案、刪錯名單或刪錯完成紀錄時，可以退回上一步。只保留最近一次；若該次操作連帶取消預約，復原時也會一併恢復。</p>
       <div id="undoBox"></div>
     </div>
     <div class="card">
@@ -621,6 +633,11 @@ footer.foot{padding:10px 16px 44px;text-align:center;font-size:.82rem;color:var(
       </div>
       <p class="muted" style="margin-bottom:0">清除前請先下載 JSON 備份。資料存在這台裝置的瀏覽器中，不會上傳。</p>
     </div>
+  </div>
+
+  <div class="counter-note">
+    <div><b>本系統僅限學務處櫃檯操作。</b></div>
+    <div>因個資維護，資料僅儲存於本裝置系統，名單僅衛生組可查閱。</div>
   </div>
 </section>
 
@@ -648,6 +665,8 @@ const wd=d=>WD[parseYmd(d).getDay()];
 function msg(el,t,k){ el.innerHTML = t?'<div class="notice '+(k||'info')+'">'+t+'</div>':''; }
 function openDlg(h){ const d=$('#dlg'); $('#dlgBody').innerHTML=h; if(!d.open) d.showModal(); }
 const TYPE={love:{name:'愛校服務',cls:'love'},clean:{name:'補打掃',cls:'clean'}};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const plain=o=>!!o&&typeof o==='object'&&!Array.isArray(o);
 
 /* ---------- SHA-256 ---------- */
 function sha256(str){
@@ -858,19 +877,91 @@ function buildXlsx(sheets){
 
 /* ---------- 資料 ---------- */
 const KEY='hygieneBooking.v2';
-let DB=null;
+let DB=null, LAST_SAVED_RAW=null, LOAD_ERROR='';
 function defaultDB(){
   const n=new Date();
   return {
     admins:[], students:{}, roster:{}, staff:{},
-    demands:{}, closed:{love:{},clean:{}}, bookings:[],
+    demands:{}, closed:{love:{},clean:{}}, opened:{love:{},clean:{}}, bookings:[],
     settings:{slot:'12:30-13:00',days:[1,4,5],loveMax:3,unit:3,idle:90,startYear:n.getMonth()>=6?n.getFullYear():n.getFullYear()-1},
     lastBackup:null, seq:1
   };
 }
+function normalizeDB(d){
+  if(!plain(d)) throw new Error('資料庫根目錄格式不符');
+  const validYmd=s=>/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(s||'')&&ymd(parseYmd(s))===s;
+  ['students','roster','staff','demands','closed','opened'].forEach(k=>{
+    if(d[k]!==undefined&&!plain(d[k])) throw new Error(k+' 格式不符');
+  });
+  if(d.settings!==undefined&&!plain(d.settings)) throw new Error('settings 格式不符');
+  if(d.admins!==undefined&&!Array.isArray(d.admins)) throw new Error('admins 格式不符');
+  if(d.bookings!==undefined&&!Array.isArray(d.bookings)) throw new Error('bookings 格式不符');
+  ['closed','opened'].forEach(k=>{
+    if(d[k]) ['love','clean'].forEach(t=>{
+      if(d[k][t]!==undefined&&!plain(d[k][t])) throw new Error('開放日設定格式不符');
+    });
+  });
+  fill(d,defaultDB());
+  if(!Array.isArray(d.settings.days)) throw new Error('開放星期設定格式不符');
+  d.settings.days=d.settings.days.map(Number).filter(x=>Number.isInteger(x)&&x>=0&&x<=6);
+  d.settings.loveMax=Math.max(1,parseInt(d.settings.loveMax,10)||3);
+  d.settings.unit=Math.max(1,parseInt(d.settings.unit,10)||3);
+  d.settings.idle=Math.max(0,parseInt(d.settings.idle,10)||0);
+  d.settings.startYear=parseInt(d.settings.startYear,10)||defaultDB().settings.startYear;
+  if(typeof d.settings.slot!=='string') throw new Error('時段設定格式不符');
+  ['love','clean'].forEach(t=>{
+    if(!plain(d.closed[t])||!plain(d.opened[t])) throw new Error('開放日設定格式不符');
+    Object.keys(d.closed[t]).concat(Object.keys(d.opened[t])).forEach(date=>{
+      if(!validYmd(date)) throw new Error('開放日日期格式不符');
+    });
+  });
+  /* 舊版曾分別停用愛校與補打掃；載入時合併為整日狀態，保留所有既有日期設定。 */
+  const closedDays=new Set(Object.keys(d.closed.love).concat(Object.keys(d.closed.clean)));
+  const openedDays=new Set(Object.keys(d.opened.love).concat(Object.keys(d.opened.clean)));
+  closedDays.forEach(date=>{ d.closed.love[date]=1; d.closed.clean[date]=1; });
+  openedDays.forEach(date=>{ d.opened.love[date]=1; d.opened.clean[date]=1; });
+  ['students','roster'].forEach(k=>Object.keys(d[k]).forEach(id=>{
+    const s=d[k][id]; if(!plain(s)) throw new Error(k+' 內含無效資料');
+    if(!s.sid) s.sid=id;
+    if(k==='students'){
+      if(s.records===undefined) s.records=[];
+      if(!Array.isArray(s.records)) throw new Error('學生完成紀錄格式不符');
+      s.records.forEach(r=>{if(!plain(r)) throw new Error('學生完成紀錄格式不符');});
+    }
+  }));
+  Object.keys(d.staff).forEach(id=>{ if(!plain(d.staff[id])) throw new Error('教職員資料格式不符'); if(!d.staff[id].acct)d.staff[id].acct=id; });
+  Object.keys(d.demands).forEach(date=>{
+    if(!validYmd(date)||!Array.isArray(d.demands[date])) throw new Error('需求資料格式不符');
+    d.demands[date].forEach(x=>{
+      if(!plain(x)||!TYPE[x.type]) throw new Error('需求類別格式不符');
+      x.cap=Math.max(1,parseInt(x.cap,10)||1);
+    });
+  });
+  const checkBooking=b=>{
+    if(!plain(b)||!TYPE[b.type]||!b.sid||!validYmd(b.date))
+      throw new Error('預約資料格式不符');
+    if(!['booked','cancel','completed'].includes(b.status)) throw new Error('預約狀態格式不符');
+  };
+  d.bookings.forEach(checkBooking);
+  d.admins.forEach(a=>{ if(!plain(a)||!a.user||!a.hash) throw new Error('管理員資料格式不符'); });
+  if(d.undo!=null){
+    if(!plain(d.undo)||!plain(d.undo.students)||!plain(d.undo.roster)
+      ||(d.undo.staff!==undefined&&!plain(d.undo.staff))
+      ||(d.undo.bookings!==undefined&&!Array.isArray(d.undo.bookings))) throw new Error('復原資料格式不符');
+    if(d.undo.bookings) d.undo.bookings.forEach(checkBooking);
+  }
+  let maxId=0;
+  const takeId=id=>{ const m=/^x(\d+)$/.exec(id||''); if(m) maxId=Math.max(maxId,+m[1]); };
+  d.bookings.forEach(b=>takeId(b.id));
+  Object.values(d.demands).forEach(a=>a.forEach(x=>takeId(x.id)));
+  d.seq=Math.max(1,parseInt(d.seq,10)||1,maxId+1);
+  return d;
+}
 function load(){
-  try{DB=JSON.parse(localStorage.getItem(KEY))||defaultDB();}catch(e){DB=defaultDB();}
-  fill(DB,defaultDB());
+  const raw=localStorage.getItem(KEY);
+  try{ DB=raw?normalizeDB(JSON.parse(raw)):defaultDB(); }
+  catch(e){ DB=defaultDB(); LOAD_ERROR=e.message; }
+  LAST_SAVED_RAW=raw;
 }
 function fill(o,d){
   for(const k in d){
@@ -878,9 +969,25 @@ function fill(o,d){
     else if(d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k])) fill(o[k],d[k]);
   }
 }
+function restoreSaved(raw){
+  try{ DB=raw?normalizeDB(JSON.parse(raw)):defaultDB(); }
+  catch(e){ DB=defaultDB(); }
+}
 function save(){
-  try{localStorage.setItem(KEY,JSON.stringify(DB));}
-  catch(e){alert('儲存失敗，瀏覽器空間可能已滿：'+e.message);}
+  const current=localStorage.getItem(KEY);
+  if(current!==LAST_SAVED_RAW){
+    restoreSaved(current); LAST_SAVED_RAW=current;
+    alert('資料已在另一個分頁更新。為避免互相覆蓋，本次操作已取消，畫面將重新載入。');
+    location.reload(); return false;
+  }
+  try{
+    const raw=JSON.stringify(DB);
+    localStorage.setItem(KEY,raw); LAST_SAVED_RAW=raw; return true;
+  }catch(e){
+    restoreSaved(current);
+    alert('儲存失敗，本次操作已取消。瀏覽器空間可能已滿：'+e.message);
+    return false;
+  }
 }
 const nextId=()=>'x'+(DB.seq++);
 
@@ -894,30 +1001,59 @@ function person(sid){
     clean:c||null
   };
 }
-const recs=st=>(st&&st.records)||[];
+const recs=st=>(st&&Array.isArray(st.records)?st.records:[]);
 const unitOf=()=>Math.max(1,+DB.settings.unit||3);
 /* 暑假紀錄以「次」計（1.5 小時），開學後的預約與補登以「場」計（30 分鐘） */
-const summerRecs=st=>recs(st).filter(r=>r.src==='import');
-const slotRecs=st=>recs(st).filter(r=>r.src!=='import');
+const summerRecs=st=>recs(st).filter(r=>r.src==='import'||r.src==='summer-manual');
+const slotRecs=st=>recs(st).filter(r=>r.src!=='import'&&r.src!=='summer-manual');
 const needSlotsTotal=st=>Math.max(0,((st.required||0)-summerRecs(st).length)*unitOf());
 const doneSlots=st=>slotRecs(st).length;
 const remainSlots=st=>Math.max(0,needSlotsTotal(st)-doneSlots(st));
 function activeBookings(sid,type){
-  const t=today();
-  return DB.bookings.filter(b=>b.sid===sid&&b.status==='booked'&&b.date>=t&&(!type||b.type===type));
-}
-function allBookings(sid,type){
-  return DB.bookings.filter(b=>b.sid===sid&&b.status==='booked'&&(!type||b.type===type));
+  const min=minBookDate();
+  return DB.bookings.filter(b=>b.sid===sid&&b.status==='booked'&&b.date>=min&&(!type||b.type===type));
 }
 function leftClean(sid){
   const c=DB.students[sid]; if(!c) return 0;
   return Math.max(0,remainSlots(c)-activeBookings(sid,'clean').length);
 }
 const isClosed=(d,t)=>!!(DB.closed[t]&&DB.closed[t][d]);
+const isWeekend=d=>{const w=parseYmd(d).getDay();return w===0||w===6;};
+const isOpened=(d,t)=>!!(DB.opened&&DB.opened[t]&&DB.opened[t][d]);
+const isDayClosed=d=>isClosed(d,'love')||isClosed(d,'clean');
+const isDayOpened=d=>isOpened(d,'love')||isOpened(d,'clean');
+const PLACE_TBD='由衛生組現場分派';
+function teacherTitle(name){
+  const s=String(name||'').trim().replace(/(?:老師|教師)$/,'').trim();
+  return s?s+'教師':'—';
+}
+/* 平日預設開放；週末預設關閉，但管理者可個別開放 */
+function dayAllowed(d){
+  if(isDayClosed(d)) return false;
+  if(isWeekend(d)&&!isDayOpened(d)) return false;
+  return true;
+}
+function setDayOpen(d,on){
+  ['love','clean'].forEach(t=>{
+    if(isWeekend(d)){
+      delete DB.closed[t][d];
+      if(on) DB.opened[t][d]=1; else delete DB.opened[t][d];
+    }else{
+      delete DB.opened[t][d];
+      if(on) delete DB.closed[t][d]; else DB.closed[t][d]=1;
+    }
+  });
+}
 /* 時段開始時間（分鐘）。過了今天的時段就從明天算起 */
 function slotStartMin(){
   const m=/(\d{1,2})\s*:\s*(\d{2})/.exec(DB.settings.slot||'');
-  return m?(+m[1]*60 + +m[2]):0;
+  if(!m||+m[1]>23||+m[2]>59) return 12*60+30;
+  return +m[1]*60 + +m[2];
+}
+function slotHasStarted(d){
+  if(d<today()) return true;
+  if(d>today()) return false;
+  const n=new Date(); return n.getHours()*60+n.getMinutes()>=slotStartMin();
 }
 function minBookDate(){
   const n=new Date();
@@ -927,28 +1063,70 @@ function minBookDate(){
   return today();
 }
 const demandsOf=(d,t)=>(DB.demands[d]||[]).filter(x=>!t||x.type===t);
-const bookedOn=(d,did)=>DB.bookings.filter(b=>b.date===d&&b.status==='booked'&&(did===undefined||b.did===did)).length;
-const bookedType=(d,t)=>DB.bookings.filter(b=>b.date===d&&b.status==='booked'&&b.type===t).length;
+const attendedBooking=b=>b.status==='booked'||b.status==='completed';
+const bookedType=(d,t)=>DB.bookings.filter(b=>b.date===d&&attendedBooking(b)&&b.type===t).length;
 function capOf(d,t){return demandsOf(d,t).reduce((a,x)=>a+(+x.cap||0),0);}
-function dayOpenFor(d,t){
-  return !isClosed(d,t)&&demandsOf(d,t).length>0&&bookedType(d,t)<capOf(d,t);
-}
 /* 已有預約或已過去的日期不得更動開放狀態 */
-function lockReason(d,t){
+function lockReason(d){
   if(d<today()) return '已經過去的日期不能更動';
-  if(bookedType(d,t)>0) return '這一天已經有人預約，不能更動';
+  if(DB.bookings.some(b=>b.date===d&&attendedBooking(b))) return '這一天已經有人預約，不能更動';
   return '';
 }
+/* 從最早可預約日往後 90 天，列出開放的日期 */
 function openDatesFor(t){
-  const td=minBookDate();
-  return Object.keys(DB.demands).filter(d=>d>=td&&dayOpenFor(d,t)).sort().slice(0,120);
+  const out=[], dt=parseYmd(minBookDate());
+  for(let i=0;i<90;i++){
+    const d=ymd(dt);
+    if(dayAllowed(d,t)) out.push(d);
+    dt.setDate(dt.getDate()+1);
+  }
+  return out;
 }
 function markToDate(mk){
   const s=String(mk).trim();
   if(!/^\d{3,4}$/.test(s)) return null;
   const m=s.length===3?+s.slice(0,1):+s.slice(0,2), d=+s.slice(-2);
-  if(m<1||m>12||d<1||d>31) return null;
-  return (DB.settings.startYear+(m>=7?0:1))+'-'+pad2(m)+'-'+pad2(d);
+  return validDateParts(DB.settings.startYear+(m>=7?0:1),m,d);
+}
+function validDateParts(y,m,d){
+  if(!Number.isInteger(y)||!Number.isInteger(m)||!Number.isInteger(d)) return null;
+  const dt=new Date(y,m-1,d);
+  return dt.getFullYear()===y&&dt.getMonth()===m-1&&dt.getDate()===d?ymd(dt):null;
+}
+function importMarkDate(v){
+  if(v==null||String(v).trim()==='') return null;
+  if(typeof v==='number'&&v>=20000&&v<=80000){
+    const dt=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000);
+    return validDateParts(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());
+  }
+  const s=String(typeof v==='number'?Math.round(v):v).trim();
+  let m;
+  if(/^\d{3,4}$/.test(s)) return markToDate(s);
+  if((m=/^(\d{4})[-\/.年](\d{1,2})[-\/.月](\d{1,2})日?$/.exec(s))) return validDateParts(+m[1],+m[2],+m[3]);
+  if((m=/^(\d{2,3})[-\/.年](\d{1,2})[-\/.月](\d{1,2})日?$/.exec(s))) return validDateParts(+m[1]+1911,+m[2],+m[3]);
+  if((m=/^(\d{3})(\d{2})(\d{2})$/.exec(s))) return validDateParts(+m[1]+1911,+m[2],+m[3]);
+  if((m=/^(\d{4})(\d{2})(\d{2})$/.exec(s))) return validDateParts(+m[1],+m[2],+m[3]);
+  if((m=/^(\d{1,2})[-\/.月](\d{1,2})日?$/.exec(s))){
+    const mo=+m[1]; return validDateParts(DB.settings.startYear+(mo>=7?0:1),mo,+m[2]);
+  }
+  if(/^\d{5}$/.test(s)){
+    const n=+s; if(n>=20000&&n<=80000){
+      const dt=new Date(Date.UTC(1899,11,30)+n*86400000);
+      return validDateParts(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());
+    }
+  }
+  return null;
+}
+const importRecKey=r=>r.date?'d:'+r.date:'m:'+String(r.mark||'').trim();
+function mergeImportRecords(current,incoming){
+  const out=recs(current).slice(), counts={};
+  summerRecs(current).forEach(r=>{const k=importRecKey(r);counts[k]=(counts[k]||0)+1;});
+  const used={}; let added=0;
+  incoming.forEach(r=>{
+    const k=importRecKey(r), n=(used[k]||0)+1; used[k]=n;
+    if(n>(counts[k]||0)){ out.push(r); added++; }
+  });
+  return {records:out,added};
 }
 const recLabel=r=>r.date?r.date.slice(5).replace('-','/'):(r.mark||'—');
 
@@ -957,14 +1135,23 @@ let SESSION=null, PENDING=null, idleTimer=null;
 function resetIdle(){
   clearTimeout(idleTimer);
   const sec=+DB.settings.idle||0;
-  if(sec>0&&SESSION&&SESSION.type!=='admin') idleTimer=setTimeout(()=>gate(),sec*1000);
+  const shouldTimeOut=PENDING||(SESSION&&SESSION.type!=='admin');
+  if(sec>0&&shouldTimeOut) idleTimer=setTimeout(()=>gate(),sec*1000);
 }
 ['click','keydown','touchstart'].forEach(e=>document.addEventListener(e,resetIdle,{passive:true}));
 
 function gate(){
+  const dlg=$('#dlg'); if(dlg.open) dlg.close();
   SESSION=null; PENDING=null; clearTimeout(idleTimer);
   $('#viewGate').classList.remove('hide');
   ['#viewConfirm','#viewStu','#viewTea','#viewAdm','#topbar'].forEach(s=>$(s).classList.add('hide'));
+  $$('#viewStu .bigbtn').forEach(b=>b.classList.remove('on'));
+  ['#paneLove','#paneClean','#paneMine'].forEach(s=>$(s).classList.add('hide'));
+  ['#loveMsg','#cleanMsg','#mineBody','#loveList','#cleanList','#tMsg','#tWho','#tDemands'].forEach(s=>$(s).innerHTML='');
+  $('#paneClean').querySelector('.stats').classList.remove('hide');
+  $('#cleanNote').textContent='';
+  $('#tDate').value=''; $('#tPlace').value=''; $('#tCap').value='2';
+  ['#cClass','#cSeat','#cName','#cSid'].forEach(s=>$(s).textContent='—');
   $('#formStu').reset(); $('#formTea').reset(); $('#formAdm').reset();
   gateTab('stu');
   drawGateCal();
@@ -990,7 +1177,9 @@ function enter(){
 const NOTE_STU='已與老師約好時間的同學不需預約，請自行攜帶愛校單前往。';
 const NOTE_TEA='學生人力依教師登記需求的先後順序分派。';
 function gateTab(which){
-  $('#noteLine2').textContent = which==='tea'?NOTE_TEA:NOTE_STU;
+  const note=$('#noteLine2');
+  note.textContent=which==='tea'?NOTE_TEA:which==='stu'?NOTE_STU:'';
+  note.classList.toggle('hide',which==='adm');
   $('#tabStu').classList.toggle('on',which==='stu');
   $('#tabTea').classList.toggle('on',which==='tea');
   $('#formStu').classList.toggle('hide',which!=='stu');
@@ -1021,6 +1210,7 @@ $('#formStu').onsubmit=e=>{
   $('#cClass').textContent=p.cls||'—'; $('#cSeat').textContent=p.seat||'—';
   $('#cName').textContent=p.name; $('#cSid').textContent=p.sid;
   $('#viewGate').classList.add('hide'); $('#viewConfirm').classList.remove('hide');
+  resetIdle();
 };
 $('#btnConfirmYes').onclick=()=>{ SESSION={type:'student',sid:PENDING}; enter(); };
 $('#btnConfirmNo').onclick=()=>gate();
@@ -1031,7 +1221,7 @@ $('#formAdm').onsubmit=e=>{
   if(DB.admins.length===0){
     if(u==='admin'&&p==='admin1234'){
       DB.admins.push({user:'admin',disp:'系統管理員',hash:hashPw('admin','admin1234'),created:today()});
-      save(); SESSION={type:'admin',user:'admin'}; enter(); return;
+      if(!save()) return; SESSION={type:'admin',user:'admin'}; enter(); return;
     }
     msg($('#gateMsg'),'首次使用請以 admin / admin1234 登入。','err'); return;
   }
@@ -1068,34 +1258,30 @@ function fillDates(sel,type){
   sel.innerHTML='';
   if(!list.length){ sel.innerHTML='<option value="">目前沒有開放的日期</option>'; return; }
   list.forEach(d=>{
+    const n=bookedType(d,type);
     const o=document.createElement('option');
-    o.value=d; o.textContent=d.slice(5).replace('-','/')+'（週'+wd(d)+'）剩 '+(capOf(d,type)-bookedType(d,type))+' 位';
+    o.value=d;
+    o.textContent=d.slice(5).replace('-','/')+'（週'+wd(d)+'）'+(n?'　已有 '+n+' 人':'');
     sel.appendChild(o);
   });
-}
-function fillPlaces(dateSel,placeSel,type){
-  const d=dateSel.value; placeSel.innerHTML='';
-  if(!d){ placeSel.innerHTML='<option value="">—</option>'; return; }
-  demandsOf(d,type).forEach(x=>{
-    const used=bookedOn(d,x.id), full=used>=x.cap;
-    const o=document.createElement('option');
-    o.value=x.id; o.disabled=full;
-    o.textContent=x.place+(x.teacher?'（'+x.teacher+(x.subject?' 老師・'+x.subject:' 老師')+'）':'')+'　'+used+'/'+x.cap+(full?' 已滿':'');
-    placeSel.appendChild(o);
-  });
-  const ok=demandsOf(d,type).find(x=>bookedOn(d,x.id)<x.cap);
-  if(ok) placeSel.value=ok.id;
 }
 function fillLove(){
   const act=activeBookings(SESSION.sid,'love'), max=DB.settings.loveMax;
   $('#loveStatus').innerHTML='目前已排 <b>'+act.length+'</b> / '+max+' 場。一張愛校單需完成 '+max+' 場，'+max+' 場排滿後，要等時間過了才能再排。';
-  fillDates($('#loveDate'),'love'); fillPlaces($('#loveDate'),$('#lovePlace'),'love');
+  fillDates($('#loveDate'),'love');
   $('#btnLoveBook').disabled=act.length>=max;
   renderBookList('#loveList','love');
 }
 function fillClean(){
   const c=DB.students[SESSION.sid];
-  if(!c){ $('#paneClean').querySelector('.stats').classList.add('hide'); return; }
+  const stats=$('#paneClean').querySelector('.stats');
+  stats.classList.toggle('hide',!c);
+  if(!c){
+    $('#cleanNote').textContent='你不在補打掃名單中。';
+    $('#cleanDate').innerHTML='<option value="">目前不需預約</option>';
+    $('#cleanList').innerHTML=''; $('#btnCleanBook').disabled=true;
+    return;
+  }
   $('#pReq').textContent=needSlotsTotal(c);
   $('#pDone').textContent=doneSlots(c);
   $('#pPend').textContent=activeBookings(SESSION.sid,'clean').length;
@@ -1103,31 +1289,27 @@ function fillClean(){
   $('#cleanNote').innerHTML='應打掃 <b>'+(c.required||0)+'</b> 次'
     +(summerRecs(c).length?'，暑假已完成 <b>'+summerRecs(c).length+'</b> 次':'')
     +'。開學後中午每場 30 分鐘，<b>'+unitOf()+'</b> 場折抵 1 次，所以共需 <b>'+needSlotsTotal(c)+'</b> 場。';
-  fillDates($('#cleanDate'),'clean'); fillPlaces($('#cleanDate'),$('#cleanPlace'),'clean');
+  fillDates($('#cleanDate'),'clean');
   $('#btnCleanBook').disabled=leftClean(SESSION.sid)<=0;
   renderBookList('#cleanList','clean');
 }
-$('#loveDate').onchange=()=>fillPlaces($('#loveDate'),$('#lovePlace'),'love');
-$('#cleanDate').onchange=()=>fillPlaces($('#cleanDate'),$('#cleanPlace'),'clean');
 
 function book(type){
   const M=$(type==='love'?'#loveMsg':'#cleanMsg');
   const d=$(type==='love'?'#loveDate':'#cleanDate').value;
-  const did=$(type==='love'?'#lovePlace':'#cleanPlace').value;
-  if(!d||!did){ msg(M,'請先選擇日期與地點。','warn'); return; }
+  if(!d){ msg(M,'請先選擇日期。','warn'); return; }
   if(d<minBookDate()){
     msg(M, d<today()?'不能預約已經過去的日期。':'今天的時段已經開始，請改約明天以後。','err'); return; }
-  if(isClosed(d,type)||!demandsOf(d,type).length){ msg(M,'這一天不開放預約。','err'); return; }
+  if(!dayAllowed(d,type)){ msg(M,isDayClosed(d)?'今日停用，不能預約。':'這一天不開放預約。','err'); return; }
   if(type==='love'&&activeBookings(SESSION.sid,'love').length>=DB.settings.loveMax){
     msg(M,'你已經排滿 '+DB.settings.loveMax+' 場，完成後才能再排。','warn'); return; }
   if(type==='clean'&&leftClean(SESSION.sid)<=0){ msg(M,'你的補打掃場次已經排滿或已完成。','warn'); return; }
   if(DB.bookings.some(b=>b.sid===SESSION.sid&&b.date===d&&b.status==='booked')){
     msg(M,d.slice(5).replace('-','/')+' 你已經有預約了，一天只能排一場。','warn'); return; }
-  const dm=demandsOf(d,type).find(x=>x.id===did);
-  if(!dm||bookedOn(d,did)>=dm.cap){ msg(M,'這個地點名額已滿，請換一個。','err'); return; }
-  DB.bookings.push({id:nextId(),type,sid:SESSION.sid,date:d,did,place:dm.place,
-    teacher:dm.teacher||'',subject:dm.subject||'',slot:DB.settings.slot,status:'booked',created:new Date().toISOString()});
-  save(); msg(M,'已加入：'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）'+esc(dm.place),'info');
+  DB.bookings.push({id:nextId(),type,sid:SESSION.sid,date:d,place:'',
+    teacher:'',subject:'',slot:DB.settings.slot,status:'booked',created:new Date().toISOString()});
+  if(!save()){ renderStu(); return; }
+  msg(M,'已加入：'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）中午到學務處集合','info');
   renderStu(); showPane(type==='love'?'paneLove':'paneClean');
   if(type==='love'&&activeBookings(SESSION.sid,'love').length>=DB.settings.loveMax) showSlip();
 }
@@ -1140,12 +1322,14 @@ function renderBookList(sel,type){
   if(!list.length){ box.innerHTML='<p class="muted">目前沒有預約。</p>'; return; }
   box.innerHTML='<h3>已排定的時段</h3><table><thead><tr><th>日期</th><th>時段</th><th>地點</th><th>核發老師</th><th></th></tr></thead><tbody>'
     +list.map(b=>'<tr><td class="num">'+b.date.slice(5).replace('-','/')+'（週'+wd(b.date)+'）</td><td class="num">'+esc(b.slot)+'</td>'
-      +'<td>'+esc(b.place)+'</td><td>'+esc(b.teacher||'—')+'</td>'
+      +'<td>'+esc(b.place||PLACE_TBD)+'</td><td>'+esc(b.teacher||'—')+'</td>'
       +'<td><button class="btn sm flat" data-cx="'+b.id+'">取消</button></td></tr>').join('')+'</tbody></table>';
   box.querySelectorAll('[data-cx]').forEach(btn=>btn.onclick=()=>{
-    if(!confirm('確定取消這個時段？')) return;
     const b=DB.bookings.find(x=>x.id===btn.dataset.cx);
-    if(b){ b.status='cancel'; save(); renderStu(); }
+    if(!b||b.status!=='booked') return;
+    if(slotHasStarted(b.date)){ msg($(type==='love'?'#loveMsg':'#cleanMsg'),'時段已經開始，不能再由學生端取消；如需更正請洽衛生組。','warn'); return; }
+    if(!confirm('確定取消這個時段？')) return;
+    b.status='cancel'; if(!save()){ renderStu(); return; } renderStu();
   });
 }
 function slipHtml(){
@@ -1154,8 +1338,8 @@ function slipHtml(){
   if(!list.length) return '<p class="muted">你目前沒有任何預約。</p>';
   return '<div class="slip"><div class="who">'+esc(p.cls)+'　'+esc(p.name)+'</div><ol>'
     +list.map(b=>'<li><b>'+b.date.replace(/-/g,'/')+'（週'+wd(b.date)+'）'+esc(b.slot)+'</b><br>'
-      +esc(b.place)+(b.teacher?'　'+esc(b.teacher)+' 老師':'')+'　<span class="tag '+TYPE[b.type].cls+'">'+TYPE[b.type].name+'</span></li>').join('')
-    +'</ol><div class="remind">請把以上日期抄到你的<b>愛校單</b>上，每次完成後記得請現場老師簽名或蓋章。<br>沒有簽名就不算完成。</div></div>';
+      +esc(b.place||PLACE_TBD)+(b.teacher?'　'+esc(b.teacher)+' 老師':'')+'　<span class="tag '+TYPE[b.type].cls+'">'+TYPE[b.type].name+'</span></li>').join('')
+    +'</ol><div class="remind">當天中午請直接到<b>學務處</b>集合，由衛生組分派工作地點。<br>請把以上日期抄到你的<b>愛校單</b>上，完成後記得請現場老師簽名或蓋章，沒有簽名就不算完成。</div></div>';
 }
 function showSlip(){ openDlg('<h3>預約完成</h3>'+slipHtml()); }
 function renderMine(){
@@ -1177,7 +1361,7 @@ function renderTeacher(){
   const t=DB.staff[SESSION.acct]||{};
   $('#tWho').innerHTML='登記人：<b>'+esc(t.name||SESSION.acct)+'</b>'
     +(t.dept?'　'+esc(t.dept):'')+(t.subject?'　'+esc(t.subject):'')
-    +'。學生預約時會看到你的姓名與科目。';
+    +'。學生預約時會看到你的姓名與科目/ 處室。';
   if(!$('#tDate').value) $('#tDate').value=minBookDate();
   renderTeaDemands();
 }
@@ -1191,12 +1375,13 @@ function myDemands(){
 $('#btnTeaAdd').onclick=()=>{
   const t=DB.staff[SESSION.acct]||{}, M=$('#tMsg');
   const type=$('#tType').value, d=$('#tDate').value, place=$('#tPlace').value.trim();
-  const cap=parseInt($('#tCap').value,10)||1;
+  const cap=Math.max(1,parseInt($('#tCap').value,10)||1);
   if(!d||!place){ msg(M,'請填寫日期與地點。','warn'); return; }
   if(d<minBookDate()){ msg(M, d<today()?'不能登記已經過去的日期。':'今天的時段已經開始，請登記明天以後。','warn'); return; }
+  if(!dayAllowed(d)){ msg(M,'今日停用，教師不能登記需求。請洽衛生組解除停用後再登記。','warn'); return; }
   DB.demands[d]=(DB.demands[d]||[]).concat([{id:nextId(),type,place,cap,
     teacher:t.name||SESSION.acct,subject:t.subject||'',by:SESSION.acct,byAcct:SESSION.acct}]);
-  save(); $('#tPlace').value='';
+  if(!save()){ renderTeacher(); return; } $('#tPlace').value='';
   msg(M,'已登記 '+d.slice(5).replace('-','/')+'（週'+wd(d)+'）　'+esc(place)+'　'+cap+' 人。','info');
   renderTeacher();
 };
@@ -1204,23 +1389,26 @@ function renderTeaDemands(){
   const list=myDemands(), box=$('#tDemands');
   if(!list.length){ box.innerHTML='<p class="muted">你還沒有登記任何需求。</p>'; return; }
   const td=today();
-  box.innerHTML='<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>已預約</th><th>狀態</th><th></th></tr></thead><tbody>'
+  box.innerHTML='<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>需求人數</th><th>當天學生</th><th>狀態</th><th></th></tr></thead><tbody>'
     +list.map(o=>{
-      const d=o.d, x=o.x, n=bookedOn(d,x.id), past=d<td;
+      const d=o.d, x=o.x, n=bookedType(d,x.type), past=d<td;
       return '<tr><td class="num">'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）</td>'
         +'<td><span class="tag '+TYPE[x.type].cls+'">'+TYPE[x.type].name+'</span></td>'
-        +'<td>'+esc(x.place)+'</td><td class="num">'+n+' / '+x.cap+'</td>'
-        +'<td>'+(past?'<span class="muted">已結束</span>':isClosed(d,x.type)?'<span class="tag wait">該日停用</span>':n>=x.cap?'<span class="tag ok">已額滿</span>':'<span class="muted">開放中</span>')+'</td>'
-        +'<td>'+((!past&&!n)?'<button class="btn sm flat" data-tdel="'+d+'|'+x.id+'">刪除</button>':'')+'</td></tr>';
+        +'<td>'+esc(x.place)+'</td><td class="num">'+x.cap+' 人</td>'
+        +'<td class="num">'+(n?'<b>'+n+'</b> 人':'<span class="muted">尚無</span>')+'</td>'
+        +'<td>'+(past?'<span class="muted">已結束</span>':!dayAllowed(d,x.type)?'<span class="tag wait">該日停用</span>':'<span class="muted">已登記</span>')+'</td>'
+        +'<td>'+(!past?'<button class="btn sm flat" data-tdel="'+d+'|'+x.id+'">刪除</button>':'')+'</td></tr>';
     }).join('')+'</tbody></table></div>'
-    +'<p class="muted">已排定學生，需要取消請洽衛生組。</p>';
+    +'<p class="muted">「當天學生」是那一天全校預約的總人數，實際分派幾位到你這裡由衛生組當天調度。<br>'
+    +'<b>教師需求與學生預約彼此獨立；刪除需求不會取消學生預約。</b>臨時不在請務必先告知。</p>';
   box.querySelectorAll('[data-tdel]').forEach(b=>b.onclick=()=>{
     const parts=b.dataset.tdel.split('|'), d=parts[0], id=parts[1];
-    if(bookedOn(d,id)){ msg($('#tMsg'),'這個時段已經有人預約，不能刪除。','warn'); renderTeacher(); return; }
-    if(!confirm('刪除這筆需求？')) return;
+    const item=(DB.demands[d]||[]).find(x=>x.id===id); if(!item) return;
+    const n=bookedType(d,item.type);
+    if(!confirm('刪除這筆需求？'+(n?'\n當天已有 '+n+' 位學生預約；學生預約是獨立資料，不會受到影響。':''))) return;
     DB.demands[d]=(DB.demands[d]||[]).filter(x=>x.id!==id);
     if(!DB.demands[d].length) delete DB.demands[d];
-    save(); renderTeacher();
+    if(!save()){ renderTeacher(); return; } renderTeacher();
   });
 }
 /* ============================================================
@@ -1233,19 +1421,20 @@ function drawCal(grid,titleEl,ym,mode){
   for(let i=0;i<42;i++){
     const dt=new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);
     const d=ymd(dt), out=dt.getMonth()!==ym.m;
-    const bs=DB.bookings.filter(b=>b.date===d&&b.status==='booked');
-    const someOpen=d>=minBookDate()&&['love','clean'].some(t=>demandsOf(d,t).length>0&&!isClosed(d,t));
-    let cls='day'+(out?' out':'')+(someOpen?' open':'')+(d===today()?' today':'');
+    const bs=DB.bookings.filter(b=>b.date===d&&attendedBooking(b));
+    const stopped=isDayClosed(d);
+    const someOpen=d>=minBookDate()&&dayAllowed(d);
+    let cls='day'+(out?' out':'')+(someOpen?' open':'')+(stopped?' closed':'')+(d===today()?' today':'');
     /* 依地點彙總需求人數 */
     const byPlace={}, order=[];
     demandsOf(d).forEach(x=>{
-      if(isClosed(d,x.type)) return;
+      if(!dayAllowed(d)) return;
       if(byPlace[x.place]===undefined){ byPlace[x.place]=0; order.push(x.place); }
       byPlace[x.place]+=(+x.cap||0);
     });
-    let body=order.slice(0,5).map(pl=>'<div class="need">'+esc(pl)+'需'+byPlace[pl]+'人</div>').join('');
+    let body=stopped?'<div class="dotlab"><b>今日停用</b></div>':order.slice(0,5).map(pl=>'<div class="need">'+esc(pl)+'需'+byPlace[pl]+'人</div>').join('');
     if(order.length>5) body+='<div class="need">＋'+(order.length-5)+' 處</div>';
-    if(order.length){
+    if(someOpen){
       body+='<div class="dotlab">今日學生：'+(bs.length?bs.length:'0')+'</div>';
       if(bs.length) body+='<div class="ent">'
         +bs.slice(0,12).map(b=>'<span class="pt '+TYPE[b.type].cls+'"></span>').join('')
@@ -1257,48 +1446,52 @@ function drawCal(grid,titleEl,ym,mode){
   grid.querySelectorAll('.day').forEach(el=>el.onclick=()=>dayInfo(el.dataset.d,mode));
 }
 function dayInfo(d,mode){
-  const bs=DB.bookings.filter(x=>x.date===d&&x.status==='booked');
+  const bs=DB.bookings.filter(x=>x.date===d&&attendedBooking(x));
   let h='<h3>'+d.replace(/-/g,'/')+'（週'+wd(d)+'）</h3>';
   if(d<today()) h+='<p class="muted">這一天已經過去，不能再預約。</p>';
   else if(d<minBookDate()) h+='<p class="muted">今天的時段已經開始，不能再預約。</p>';
-  const totalNeed=['love','clean'].reduce((a,t)=>a+(isClosed(d,t)?0:capOf(d,t)),0);
-  if(totalNeed&&!bs.length) h+='<div class="notice warn">這天還沒有人預約，目前需求 '+totalNeed+' 人。</div>';
-  else if(totalNeed) h+='<p>需求 <b>'+totalNeed+'</b> 人，已預約 <b>'+bs.length+'</b> 人'
-    +(bs.length<totalNeed?'，還缺 <b>'+(totalNeed-bs.length)+'</b> 人':'')+'。</p>';
+  const totalNeed=dayAllowed(d)?capOf(d,'love')+capOf(d,'clean'):0;
+  const anyOpen=dayAllowed(d);
+  if(isDayClosed(d)) h+='<div class="notice warn"><b>今日停用</b>，教師與學生都不能登記或預約。</div>';
+  else if(!anyOpen) h+='<div class="notice warn">這天不開放預約。</div>';
+  else if(!bs.length) h+='<div class="notice warn">這天還沒有人預約'+(totalNeed?'，目前教師需求 '+totalNeed+' 人':'')+'。</div>';
+  else h+='<p>已預約 <b>'+bs.length+'</b> 人'+(totalNeed?'，教師需求 '+totalNeed+' 人'
+    +(bs.length<totalNeed?'，還缺 <b>'+(totalNeed-bs.length)+'</b> 人':''):'')+'。</p>';
   ['love','clean'].forEach(t=>{
     const dm=demandsOf(d,t);
-    if(!dm.length&&!isClosed(d,t)&&mode!=='adm') return;
+    if(!dm.length&&mode!=='adm') return;
     h+='<p><span class="tag '+TYPE[t].cls+'">'+TYPE[t].name+'</span> ';
-    h+= isClosed(d,t) ? '<b>本日停用</b>' :
-      (dm.length? dm.map(x=>esc(x.place)+(x.teacher?'／'+esc(x.teacher):'')+' '+bookedOn(d,x.id)+'/'+x.cap+' 人').join('　')
-                : '<span class="muted">尚未登記需求</span>');
-    if(mode==='adm'){
-      const lock=lockReason(d,t);
-      h+=' <button class="btn sm'+(isClosed(d,t)?'':' flat')+'" data-tg="'+t+'"'+(lock?' disabled title="'+esc(lock)+'"':'')+'>'
-        +(isClosed(d,t)?'重新開放':'停用這天')+'</button>';
-      if(lock) h+=' <span class="muted">'+esc(lock)+'</span>';
-    }
+    h+=dm.length
+      ? dm.map(x=>'需求處室：'+esc(x.place)+'　核發時數：'+esc(teacherTitle(x.teacher))+'　需求人數：'+x.cap+' 人').join('<br>')
+      : (anyOpen?'<span class="muted">開放預約，尚無教師登記需求</span>':'<span class="muted">本日不開放</span>');
     h+='</p>';
   });
   if(mode==='adm'){
+    const lock=lockReason(d), on=dayAllowed(d);
+    const label=on?'停用這天':isDayClosed(d)?'解除停用':'開放這天';
+    h+='<p><button class="btn sm'+(on?' flat':'')+'" data-day-toggle'+(lock?' disabled title="'+esc(lock)+'"':'')+'>'+label+'</button>';
+    if(lock) h+=' <span class="muted">'+esc(lock)+'</span>';
+    h+='</p>';
     h+= bs.length
       ? '<table><thead><tr><th>類別</th><th>班級</th><th>座號</th><th>姓名</th><th>地點</th><th>核發老師</th></tr></thead><tbody>'
         +bs.sort((a,b)=>{const A=person(a.sid)||{},B=person(b.sid)||{};return ((A.cls||'')+(A.seat||'')).localeCompare((B.cls||'')+(B.seat||''),'zh-Hant');})
           .map(b=>{const p=person(b.sid)||{};
             return '<tr><td><span class="tag '+TYPE[b.type].cls+'">'+TYPE[b.type].name+'</span></td><td>'+esc(p.cls||'')+'</td>'
-              +'<td class="num">'+esc(p.seat||'')+'</td><td>'+esc(p.name||b.sid)+'</td><td>'+esc(b.place)+'</td><td>'+esc(b.teacher||'—')+'</td></tr>';}).join('')
+              +'<td class="num">'+esc(p.seat||'')+'</td><td>'+esc(p.name||b.sid)+'</td><td>'+esc(b.place||PLACE_TBD)+'</td><td>'+esc(b.teacher||'—')+'</td></tr>';}).join('')
         +'</tbody></table>'
       : '<p class="muted">今天沒有人預約。</p>';
   }else{
     h+='<p class="muted">名單僅衛生組可查看，這裡只顯示人數。</p>';
   }
   openDlg(h);
-  if(mode==='adm') $('#dlgBody').querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{
-    const t=b.dataset.tg;
-    if(lockReason(d,t)) return;
-    if(isClosed(d,t)) delete DB.closed[t][d]; else DB.closed[t][d]=1;
-    save(); renderAdmin(); dayInfo(d,'adm');
-  });
+  if(mode==='adm'){
+    const b=$('#dlgBody').querySelector('[data-day-toggle]');
+    if(b) b.onclick=()=>{
+      if(lockReason(d)) return;
+      setDayOpen(d,!dayAllowed(d));
+      if(!save()){ renderAdmin(); return; } renderAdmin(); dayInfo(d,'adm');
+    };
+  }
 }
 
 /* ============================================================
@@ -1314,7 +1507,24 @@ $('#admTabs').addEventListener('click',e=>{
   $(map[b.dataset.t]).classList.remove('hide');
   renderAdmin();
 });
+const LIST_LABEL={roster:'全校學生名單',clean:'補打掃名單',classonly:'補打掃名單',staff:'教職員名單'};
+function listStoreOf(k){ return k==='roster'?DB.roster:k==='staff'?DB.staff:DB.students; }
+function renderCurList(){
+  const k=$('#impTarget').value, label=LIST_LABEL[k]||'名單';
+  const n=Object.keys(listStoreOf(k)).length;
+  $('#curListInfo').innerHTML='目前的<b>'+label+'</b>共 <b>'+n+'</b> 筆。'
+    +(n?(k==='classonly'?'此模式只更新既有學生的班級、座號。'
+      :k==='clean'?'再次匯入只新增學生與尚未存在的完成日期，不會覆蓋舊資料。'
+      :'再次匯入只新增尚未存在的帳號或學號，不會覆蓋既有資料。'):'尚未匯入任何資料。');
+  $('#btnClearHere').disabled=!n;
+}
+$('#impTarget').addEventListener('change',renderCurList);
+$('#btnClearHere').onclick=()=>{
+  const k=$('#impTarget').value, label=LIST_LABEL[k]||'名單';
+  clearWholeList(k==='classonly'?'clean':k,label,$('#impMsg'));
+};
 function renderAdmin(){
+  renderCurList();
   backupHint(); renderDemands(); renderClosed(); renderQuery(); renderStuTable(); renderAccounts(); renderUndoBox();
   $('#wdays').innerHTML=[1,2,3,4,5,6,0].map(i=>'<label><input type="checkbox" value="'+i+'"'
     +(DB.settings.days.indexOf(i)>=0?' checked':'')+'>週'+WD[i]+'</label>').join('');
@@ -1347,19 +1557,20 @@ function backupHint(){
 /* ---- 需求登記 ---- */
 $('#btnAddDemand').onclick=()=>{
   const t=$('#dType').value, d=$('#dDate').value, place=$('#dPlace').value.trim();
-  const cap=parseInt($('#dCap').value,10)||1;
+  const cap=Math.max(1,parseInt($('#dCap').value,10)||1);
   const teacher=t==='love'?$('#dTeacher').value.trim():'', subject=t==='love'?$('#dSubject').value.trim():'';
   const M=$('#dMsg');
   if(!d||!place){ msg(M,'請填寫日期與地點。','warn'); return; }
   if(d<today()){ msg(M,'不能登記已經過去的日期。','warn'); return; }
+  if(!dayAllowed(d)){ msg(M,'今日停用，不能登記需求。請先到「日曆與開放日」解除停用。','warn'); return; }
   DB.demands[d]=(DB.demands[d]||[]).concat([{id:nextId(),type:t,place,cap,teacher,subject,by:SESSION.user,byAcct:''}]);
-  save(); $('#dPlace').value='';
+  if(!save()){ renderAdmin(); return; } $('#dPlace').value='';
   msg(M,'已新增 '+d.slice(5).replace('-','/')+'（週'+wd(d)+'）　'+esc(place)+'　'+cap+' 人。','info');
   renderAdmin();
 };
 $('#btnBatchDemand').onclick=()=>{
   const t=$('#dType').value, f=$('#bFrom').value, to=$('#bTo').value;
-  const cap=parseInt($('#bCap').value,10)||1;
+  const cap=Math.max(1,parseInt($('#bCap').value,10)||1);
   const teacher=t==='love'?$('#dTeacher').value.trim():'', subject=t==='love'?$('#dSubject').value.trim():'';
   const names=$('#bPlaces').value.split(/[,，、]/).map(s=>s.trim()).filter(Boolean);
   const M=$('#dMsg');
@@ -1368,25 +1579,28 @@ $('#btnBatchDemand').onclick=()=>{
   const picked=$$('#wdays input:checked').map(x=>+x.value);
   if(!picked.length){ msg(M,'請至少勾選一個星期。','warn'); return; }
   DB.settings.days=picked;
-  const td=today(); let n=0;
+  const td=today(); let n=0,skipClosed=0;
   for(let dt=parseYmd(f);ymd(dt)<=to;dt.setDate(dt.getDate()+1)){
     const d=ymd(dt); if(d<td||picked.indexOf(dt.getDay())<0) continue;
+    if(!dayAllowed(d)){ skipClosed++; continue; }
     const cur=(DB.demands[d]||[]).slice();
-    names.forEach(p=>{ if(!cur.some(x=>x.type===t&&x.place===p)) cur.push({id:nextId(),type:t,place:p,cap,teacher,subject,by:SESSION.user,byAcct:''}); });
-    DB.demands[d]=cur; n++;
+    let added=false;
+    names.forEach(p=>{ if(!cur.some(x=>x.type===t&&x.place===p)){ cur.push({id:nextId(),type:t,place:p,cap,teacher,subject,by:SESSION.user,byAcct:''}); added=true; } });
+    if(added){ DB.demands[d]=cur; n++; }
   }
-  save(); msg(M,'已套用到 '+n+' 天。','info'); renderAdmin();
+  if(!save()){ renderAdmin(); return; }
+  msg(M,'已套用到 '+n+' 天'+(skipClosed?'，另有 '+skipClosed+' 個停用日期已略過':'')+'。','info'); renderAdmin();
 };
 function renderDemands(){
   const dates=Object.keys(DB.demands).filter(d=>demandsOf(d).length).sort();
   const td=today(), future=dates.filter(d=>d>=td), past=dates.filter(d=>d<td);
-  const tbl=list=>'<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>核發老師</th><th>預約/需求</th><th></th></tr></thead><tbody>'
+  const tbl=list=>'<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>核發老師</th><th>當日學生／本筆需求</th><th></th></tr></thead><tbody>'
     +list.map(d=>demandsOf(d).map(x=>
       '<tr><td class="num">'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）</td>'
       +'<td><span class="tag '+TYPE[x.type].cls+'">'+TYPE[x.type].name+'</span></td>'
       +'<td>'+esc(x.place)+'</td><td>'+esc(x.teacher||'—')+(x.subject?'　'+esc(x.subject):'')
       +(x.byAcct?'<br><span class="muted">教師自行登記：'+esc(x.byAcct)+'</span>':'')+'</td>'
-      +'<td class="num">'+bookedOn(d,x.id)+' / '+x.cap+'</td>'
+      +'<td class="num">'+bookedType(d,x.type)+' / '+x.cap+'</td>'
       +'<td><button class="btn sm flat" data-dd="'+d+'|'+x.id+'">刪除</button></td></tr>').join('')).join('')
     +'</tbody></table></div>';
   const box=$('#demandList');
@@ -1394,45 +1608,51 @@ function renderDemands(){
     +(past.length?'<h3 style="margin-top:16px">已過去（最近 15 天）</h3>'+tbl(past.slice(-15)):'');
   box.querySelectorAll('[data-dd]').forEach(b=>b.onclick=()=>{
     const [d,id]=b.dataset.dd.split('|');
-    if(bookedOn(d,id)&&!confirm('這個時段已經有人預約，刪除後預約仍會保留。確定刪除？')) return;
+    const item=(DB.demands[d]||[]).find(x=>x.id===id); if(!item) return;
+    const n=bookedType(d,item.type);
+    if(!confirm('刪除這筆需求？'+(n?'\n當天已有 '+n+' 位學生預約；學生預約是獨立資料，不會受到影響。':''))) return;
     DB.demands[d]=(DB.demands[d]||[]).filter(x=>x.id!==id);
     if(!DB.demands[d].length) delete DB.demands[d];
-    save(); renderAdmin();
+    if(!save()){ renderAdmin(); return; } renderAdmin();
   });
 }
 function setClosed(on){
-  const t=$('#cType').value, f=$('#cFrom').value, to=$('#cTo').value||f, M=$('#cMsg');
+  const f=$('#cFrom').value, to=$('#cTo').value||f, M=$('#cMsg');
   if(!f){ msg(M,'請選擇日期。','warn'); return; }
   if(f>to){ msg(M,'起始日不能晚於結束日。','warn'); return; }
-  const types=t==='both'?['love','clean']:[t];
   let n=0,skip=0;
   for(let dt=parseYmd(f);ymd(dt)<=to;dt.setDate(dt.getDate()+1)){
-    const d=ymd(dt); let did=false;
-    types.forEach(x=>{
-      if(lockReason(d,x)){ skip++; return; }
-      if(on) DB.closed[x][d]=1; else delete DB.closed[x][d];
-      did=true;
-    });
-    if(did) n++;
+    const d=ymd(dt);
+    if(lockReason(d)){ skip++; continue; }
+    setDayOpen(d,!on); n++;
   }
-  save(); msg(M,(on?'已停用 ':'已解除停用 ')+n+' 天'+(skip?'，另有 '+skip+' 筆因已有預約或已過去而略過':'')+'。','info');
+  if(!save()){ renderAdmin(); return; } msg(M,(on?'已停用 ':'已解除停用 ')+n+' 天'+(skip?'，另有 '+skip+' 天因已有預約或已過去而略過':'')+'。','info');
   renderAdmin();
 }
 $('#btnClose').onclick=()=>setClosed(true);
 $('#btnReopen').onclick=()=>setClosed(false);
 function renderClosed(){
-  const all=new Set([...Object.keys(DB.closed.love),...Object.keys(DB.closed.clean)]);
-  const list=Array.from(all).filter(d=>d>=today()).sort();
-  $('#closedList').innerHTML= list.length
-    ? '<table><thead><tr><th>日期</th><th>停用項目</th><th></th></tr></thead><tbody>'
-      +list.map(d=>'<tr><td class="num">'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）</td><td>'
-        +(isClosed(d,'love')?'<span class="tag love">愛校服務</span> ':'')
-        +(isClosed(d,'clean')?'<span class="tag clean">補打掃</span>':'')
-        +'</td><td><button class="btn sm flat" data-open="'+d+'">解除</button></td></tr>').join('')+'</tbody></table>'
-    : '<p class="muted">目前沒有停用中的未來日期。</p>';
+  const td=today();
+  const all=new Set(Object.keys(DB.closed.love).concat(Object.keys(DB.closed.clean)));
+  const list=Array.from(all).filter(d=>d>=td).sort();
+  const opAll=new Set(Object.keys(DB.opened.love).concat(Object.keys(DB.opened.clean)));
+  const opList=Array.from(opAll).filter(d=>d>=td).sort();
+  let h= list.length
+    ? '<h3>停用中的日期</h3><table><thead><tr><th>日期</th><th>狀態</th><th></th></tr></thead><tbody>'
+      +list.map(d=>'<tr><td class="num">'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）</td><td><span class="tag wait">整日停用</span></td>'
+        +'<td><button class="btn sm flat" data-open="'+d+'">解除停用</button></td></tr>').join('')+'</tbody></table>'
+    : '<p class="muted">目前沒有停用中的未來日期。平日預設全部開放。</p>';
+  if(opList.length) h+='<h3 style="margin-top:14px">額外開放的假日</h3><table><thead><tr><th>日期</th><th>狀態</th><th></th></tr></thead><tbody>'
+    +opList.map(d=>'<tr><td class="num">'+d.slice(5).replace('-','/')+'（週'+wd(d)+'）</td><td><span class="tag wait">整日開放</span></td>'
+      +'<td><button class="btn sm flat" data-shut="'+d+'">取消開放</button></td></tr>').join('')+'</tbody></table>';
+  $('#closedList').innerHTML=h;
   $('#closedList').querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{
-    delete DB.closed.love[b.dataset.open]; delete DB.closed.clean[b.dataset.open];
-    save(); renderAdmin();
+    setDayOpen(b.dataset.open,true);
+    if(!save()){ renderAdmin(); return; } renderAdmin();
+  });
+  $('#closedList').querySelectorAll('[data-shut]').forEach(b=>b.onclick=()=>{
+    setDayOpen(b.dataset.shut,false);
+    if(!save()){ renderAdmin(); return; } renderAdmin();
   });
 }
 
@@ -1449,26 +1669,31 @@ function queryRows(){
 function renderQuery(){
   const list=queryRows(), box=$('#qList');
   if(!list.length){ box.innerHTML='<p class="muted">沒有符合條件的預約。</p>'; return; }
-  box.innerHTML='<p class="muted">共 '+list.length+' 筆。日期過了會自動釋放名額，不需要做任何登記。</p>'
+  box.innerHTML='<p class="muted">共 '+list.length+' 筆。時段開始後會自動釋放學生端的預約額度；補打掃仍需由衛生組記為完成。</p>'
     +'<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>核發老師</th><th>班級</th><th>座號</th><th>姓名</th><th>操作</th></tr></thead><tbody>'
     +list.map(b=>{const p=person(b.sid)||{};
       return '<tr><td class="num">'+b.date.slice(5).replace('-','/')+'（週'+wd(b.date)+'）</td>'
         +'<td><span class="tag '+TYPE[b.type].cls+'">'+TYPE[b.type].name+'</span></td>'
-        +'<td>'+esc(b.place)+'</td><td>'+esc(b.teacher||'—')+'</td>'
+        +'<td>'+esc(b.place||PLACE_TBD)+'</td><td>'+esc(b.teacher||'—')+'</td>'
         +'<td>'+esc(p.cls||'')+'</td><td class="num">'+esc(p.seat||'')+'</td><td>'+esc(p.name||b.sid)+'</td>'
         +'<td><button class="btn sm flat" data-del="'+b.id+'">取消</button>'
-        +(b.type==='clean'?' <button class="btn sm" data-done="'+b.id+'">記為完成</button>':'')+'</td></tr>';}).join('')
+        +(b.type==='clean'?' <button class="btn sm" data-done="'+b.id+'"'+(!slotHasStarted(b.date)?' disabled title="時段尚未開始"':'')+'>'
+          +(!slotHasStarted(b.date)?'尚未開始':'記為完成')+'</button>':'')+'</td></tr>';}).join('')
     +'</tbody></table></div>';
   box.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{
     if(!confirm('取消這筆預約？')) return;
-    const b=DB.bookings.find(y=>y.id===x.dataset.del); if(b) b.status='cancel';
-    save(); renderAdmin();
+    const b=DB.bookings.find(y=>y.id===x.dataset.del); if(!b||b.status!=='booked') return;
+    b.status='cancel'; if(!save()){ renderAdmin(); return; } renderAdmin();
   });
   box.querySelectorAll('[data-done]').forEach(x=>x.onclick=()=>{
     const b=DB.bookings.find(y=>y.id===x.dataset.done); if(!b) return;
+    if(b.status!=='booked') return;
+    if(!slotHasStarted(b.date)){ alert('這個時段尚未開始，不能提前記為完成。'); return; }
     const c=DB.students[b.sid]; if(!c){ alert('這位同學不在補打掃名單中。'); return; }
+    if(recs(c).some(r=>r.bid===b.id)){ alert('這筆預約已經登記完成，不能重複計算。'); return; }
+    if(!confirm('確認 '+b.date.replace(/-/g,'/')+' 的補打掃已完成？')) return;
     c.records=recs(c).concat([{src:'booking',bid:b.id,date:b.date,mark:'',place:b.place}]);
-    b.status='cancel'; save(); renderAdmin();
+    b.status='completed'; if(!save()){ renderAdmin(); return; } renderAdmin();
   });
 }
 $('#qDate').onchange=renderQuery; $('#qType').onchange=renderQuery; $('#qCls').oninput=renderQuery;
@@ -1476,26 +1701,38 @@ $('#btnToday').onclick=()=>{ $('#qDate').value=today(); renderQuery(); };
 $('#btnClearQ').onclick=()=>{ $('#qDate').value=''; $('#qType').value=''; $('#qCls').value=''; renderQuery(); };
 
 /* ---- 名單匯入 ---- */
-const FIELDS=[['skip','（不匯入）'],['sid','學號'],['name','姓名'],['cls','班級'],['seat','座號'],
-  ['classNo','班號'],['oldCls','原班級'],['oldSeat','原座號'],['required','應打掃次數'],['date','返掃紀錄欄'],['note','備註']];
-const FIELDS_STAFF=[['skip','（不匯入）'],['acct','帳號／Email'],['name','姓名'],['dept','單位／處室'],['subject','科目']];
-let IMP=null;
-const isStaffImport=()=>$('#impTarget').value==='staff';
-const fieldList=()=>isStaffImport()?FIELDS_STAFF:FIELDS;
+const FIELD_LABEL={skip:'未辨識',sid:'學號',name:'姓名',cls:'班級',seat:'座號',classNo:'班號',
+  oldCls:'原班級',oldSeat:'原座號',required:'應打掃次數',date:'返掃紀錄',note:'備註',
+  email:'Email',acct:'帳號',dept:'單位／處室',subject:'科目/ 處室'};
+let IMP=null, IMP_READY=null;
+const importTarget=target=>target||$('#impTarget').value;
+const isStaffImport=target=>importTarget(target)==='staff';
+/* Excel 標題可能含換行、全形字、BOM 或不可見字元，辨識前一律清理。 */
+function normHead(h){
+  return String(h==null?'':h).normalize('NFKC').replace(/[\s\u200B-\u200D\u2060\uFEFF]/g,'').trim();
+}
 function guessStaff(h){
-  const s=String(h||'').replace(/\s/g,'');
+  const s=normHead(h);
   if(!s) return 'skip';
-  if(/信箱|email|mail|電子郵件|帳號|acct|account/i.test(s)) return 'acct';
+  if(/信箱|email|e-mail|mail|電子郵件/i.test(s)) return 'email';
+  if(/帳號|acct|account|登入名稱|使用者/i.test(s)) return 'acct';
   if(/姓名|教師|老師|職員/.test(s)) return 'name';
+  if(/科目.*處室|處室.*科目/.test(s)) return 'subject';
   if(/單位|處室|科別|組別|部門/.test(s)) return 'dept';
   if(/科目|任教|領域/.test(s)) return 'subject';
   return 'skip';
 }
-const guessFor=h=>isStaffImport()?guessStaff(h):guess(h);
+const guessFor=(h,target)=>isStaffImport(target)?guessStaff(h):guess(h);
+/* 系統自動計算、不需匯入的統計欄位 */
+function isAutoCol(h){
+  const s=normHead(h);
+  return /次數$/.test(s)&&/^(已|未|尚|剩)/.test(s);
+}
 function guess(h){
-  const s=String(h||'').replace(/\s/g,'');
+  const s=normHead(h);
   if(!s) return 'skip';
   const old=/1142|原|舊|上學期/.test(s);
+  if(/信箱|email|e-mail|mail|電子郵件/i.test(s)) return 'email';
   if(/學號/.test(s)) return 'sid';
   if(/姓名/.test(s)) return 'name';
   if(/班級/.test(s)) return old?'oldCls':'cls';
@@ -1508,7 +1745,7 @@ function guess(h){
 }
 function headerRowOf(rows){
   for(let i=0;i<Math.min(rows.length,20);i++){
-    const r=(rows[i]||[]).map(c=>String(c==null?'':c));
+    const r=(rows[i]||[]).map(normHead);
     if(!r.some(c=>/姓名/.test(c))) continue;
     if(r.some(c=>/班級|學號|信箱|email|mail|帳號/i.test(c))) return i;
   }
@@ -1516,15 +1753,16 @@ function headerRowOf(rows){
 }
 function dataRowCount(sh){ return sh.rows.filter(r=>r.some(c=>c!==null&&c!=='')).length; }
 /* 只有看起來像名單的分頁才預設勾選 */
-function looksLikeRoster(sh){
+function looksLikeRoster(sh,target){
   const hr=headerRowOf(sh.rows), r=(sh.rows[hr]||[]).map(c=>String(c==null?'':c));
   if(!r.some(c=>/姓名/.test(c))) return false;
-  if(isStaffImport()) return r.some(c=>/信箱|email|mail|帳號/i.test(c));
+  if(isStaffImport(target)) return r.some(c=>/信箱|email|mail|帳號/i.test(c));
   if(!r.some(c=>/學號/.test(c))) return false;
   return sh.rows.slice(hr+1).some(row=>row.some(c=>/^\d{4,}$/.test(String(c==null?'':c).trim())));
 }
 function handleFile(file){
   const M=$('#impMsg'); msg(M,'讀取中…','info');
+  IMP_READY=null;
   const fr=new FileReader();
   fr.onload=async()=>{
     try{
@@ -1558,10 +1796,11 @@ function sheetChanged(){
   buildMap();
 }
 $('#impHeaderRow').onchange=buildMap;
-$('#impTarget').onchange=()=>{ if(IMP) renderSheetPicks(); };
+$('#impTarget').onchange=()=>{ IMP_READY=null; if(IMP) renderSheetPicks(); };
 function renderSheetPicks(){
+  const target=$('#impTarget').value;
   $('#impSheets').innerHTML=IMP.sheets.map(function(sh,i){
-    const n=dataRowCount(sh), ok=looksLikeRoster(sh);
+    const n=dataRowCount(sh), ok=looksLikeRoster(sh,target);
     return '<label'+(ok?'':' style="opacity:.6"')+'><input type="checkbox" value="'+i+'"'+(ok?' checked':'')+'>'
       +esc(sh.name)+'（'+n+' 列'+(ok?'':'・非名單格式')+'）</label>';
   }).join('');
@@ -1580,19 +1819,30 @@ function headInfo(idx,useManual){
   return {sheet:sh,hr,head:out};
 }
 function buildMap(){
+  IMP_READY=null;
   if(!IMP||!picked().length){ $('#impMap').innerHTML='<p class="muted">請至少勾選一個工作表。</p>'; return; }
+  const target=$('#impTarget').value;
   const {head}=headInfo(primary(),picked().length===1);
-  const FL=fieldList();
-  $('#impMap').innerHTML=head.map((t,i)=>
-    '<label class="field" style="margin-bottom:0"><span>'+(t?esc(t):'第 '+(i+1)+' 欄（無標題）')+'</span>'
-    +'<select data-col="'+i+'">'+FL.map(f=>'<option value="'+f[0]+'"'+(f[0]===guessFor(t)?' selected':'')+'>'+f[1]+'</option>').join('')
-    +'</select></label>').join('');
+  const defaults=[];
+  $('#impMap').innerHTML=head.map((t,i)=>{
+    const auto=!isStaffImport(target)&&isAutoCol(t);
+    const field=auto?'skip':guessFor(t,target), recognized=field!=='skip';
+    defaults[i]=recognized?'import':'skip';
+    const hint=auto?'系統自動計算':recognized?'自動辨識：'+FIELD_LABEL[field]:'未辨識，預設不匯入';
+    const opts='<option value="import"'+(recognized?' selected':'')+(!recognized?' disabled':'')+'>匯入</option>'
+      +'<option value="skip"'+(!recognized?' selected':'')+'>不匯入</option>';
+    return '<label class="field" style="margin-bottom:0'+(!recognized?';opacity:.62':'')+'"><span>'+(t?esc(t):'第 '+(i+1)+' 欄（無標題）')
+      +' <span class="muted">→ '+esc(hint)+'</span></span>'
+      +'<select data-col="'+i+'" data-field="'+field+'"'+(auto?' disabled':'')+'>'+opts+'</select></label>';
+  }).join('');
+  /* Safari 可能替動態 select 還原舊值；建立後再明確指定一次，避免已辨識學號卻顯示不匯入。 */
+  $$('#impMap select').forEach(x=>{ x.value=defaults[+x.dataset.col]||'skip'; });
   $('#impPreview').innerHTML='';
 }
 const seatNorm=v=>{const s=String(v==null?'':v).trim(); if(!s) return ''; const d=s.replace(/\D/g,''); return d?pad2(String(parseInt(d,10))):s;};
 function rowsFromSheet(idx,map,sheetName){
   const info=headInfo(idx,picked().length===1&&idx===primary());
-  const out=[];
+  const out=[]; let invalid=0;
   for(let i=info.hr+1;i<info.sheet.rows.length;i++){
     const r=info.sheet.rows[i]; if(!r||!r.length) continue;
     let sid=r[map.sid]; if(sid==null||sid==='') continue;
@@ -1603,13 +1853,19 @@ function rowsFromSheet(idx,map,sheetName){
     map.date.forEach(c=>{
       let v=r[c]; if(v==null||v==='') return;
       if(typeof v==='number') v=String(Math.round(v));
-      v=String(v).trim(); if(v) rec.push({src:'import',mark:v,date:markToDate(v),place:''});
+      v=String(v).trim(); if(!v) return;
+      const date=importMarkDate(v);
+      if(!date){ invalid++; return; }
+      rec.push({src:'import',mark:v,date,place:''});
     });
-    out.push({sid,name:txt(map.name),cls:txt(map.cls),seat:seatNorm(txt(map.seat)),classNo:txt(map.classNo),
+    const reqRaw=map.required===undefined?'':txt(map.required);
+    const reqNum=reqRaw===''?null:parseInt(reqRaw,10);
+    out.push({sid,name:txt(map.name),email:txt(map.email),cls:txt(map.cls),seat:seatNorm(txt(map.seat)),classNo:txt(map.classNo),
       oldCls:txt(map.oldCls),oldSeat:seatNorm(txt(map.oldSeat)),
-      required:map.required===undefined?null:(parseInt(txt(map.required),10)||0),
+      required:Number.isFinite(reqNum)?Math.max(0,reqNum):null,
       note:txt(map.note),rec,from:sheetName});
   }
+  out.invalid=invalid;
   return out;
 }
 function staffRowsFrom(idx,map,sheetName){
@@ -1618,93 +1874,115 @@ function staffRowsFrom(idx,map,sheetName){
   for(let i=info.hr+1;i<info.sheet.rows.length;i++){
     const r=info.sheet.rows[i]; if(!r||!r.length) continue;
     const txt=c=>{const v=(c===undefined?null:r[c]);return v==null?'':String(v).trim();};
-    const raw=txt(map.acct);
+    const email=txt(map.email);
+    const raw=txt(map.acct)||email;
     const acct=raw.toLowerCase().split('@')[0].trim();
     const name=txt(map.name);
     if(!acct||!name) continue;
     if(!/^[a-z0-9._-]+$/.test(acct)) continue;
-    out.push({acct,name,dept:txt(map.dept),subject:txt(map.subject),email:raw,from:sheetName});
+    out.push({acct,name,dept:txt(map.dept),subject:txt(map.subject),email:email||(raw.includes('@')?raw:''),from:sheetName});
   }
   return out;
 }
-function readRows(){
+function readRows(target){
+  target=importTarget(target);
   const sel=picked();
   if(!sel.length) throw new Error('請至少勾選一個工作表');
-  if(isStaffImport()){
+  if(isStaffImport(target)){
     const p=primary(), single=sel.length===1;
     const uiMap={}, labelMap={};
-    $$('#impMap select').forEach(x=>{ uiMap[+x.dataset.col]=x.value; });
-    headInfo(p,single).head.forEach((lab,i)=>{ if(lab) labelMap[lab]=uiMap[i]||'skip'; });
-    const all=[], seen={}; let dup=0;
+    $$('#impMap select').forEach(x=>{ uiMap[+x.dataset.col]=(x.value==='import'&&x.dataset.field!=='skip')?x.dataset.field:'skip'; });
+    headInfo(p,single).head.forEach((lab,i)=>{ const key=normHead(lab); if(key) labelMap[key]=uiMap[i]||'skip'; });
+    const all=[], seen={}; let dup=0, invalid=0;
     sel.forEach(idx=>{
       const info=headInfo(idx,single&&idx===p), map={};
       info.head.forEach((lab,i)=>{
-        const f=(idx===p)?(uiMap[i]||'skip'):(lab&&labelMap[lab]!==undefined?labelMap[lab]:guessStaff(lab));
+        const key=normHead(lab);
+        const f=(idx===p)?(uiMap[i]||'skip'):(key&&labelMap[key]!==undefined?labelMap[key]:guessStaff(lab));
         if(f!=='skip'&&map[f]===undefined) map[f]=i;
       });
-      if(map.acct===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到「帳號／Email」欄位');
+      /* Email／帳號與姓名是教職員身分欄，不檢查也不要求學號。 */
+      info.head.forEach((lab,i)=>{
+        const f=guessStaff(lab);
+        if((f==='email'||f==='acct'||f==='name')&&map[f]===undefined) map[f]=i;
+      });
+      if(map.acct===undefined&&map.email===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到「Email／帳號」欄位');
       if(map.name===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到「姓名」欄位');
       staffRowsFrom(idx,map,info.sheet.name).forEach(r=>{
         if(seen[r.acct]){ dup++; return; }
         seen[r.acct]=1; all.push(r);
       });
     });
-    all.dup=dup; all.sheets=sel.length; all.staff=true;
+    all.dup=dup; all.sheets=sel.length; all.staff=true; all.invalid=invalid;
     return all;
   }
   const p=primary(), single=sel.length===1;
   const uiMap={}, labelMap={};
-  $$('#impMap select').forEach(x=>{ uiMap[+x.dataset.col]=x.value; });
+  $$('#impMap select').forEach(x=>{ uiMap[+x.dataset.col]=(x.value==='import'&&x.dataset.field!=='skip')?x.dataset.field:'skip'; });
   const pHead=headInfo(p,single).head;
-  pHead.forEach((lab,i)=>{ if(lab) labelMap[lab]=uiMap[i]||'skip'; });
-  const all=[], seen={}; let dup=0;
+  pHead.forEach((lab,i)=>{ const key=normHead(lab); if(key) labelMap[key]=uiMap[i]||'skip'; });
+  const all=[], seen={}; let dup=0, invalid=0;
   sel.forEach(idx=>{
     const info=headInfo(idx,single&&idx===p);
     const map={date:[]};
     info.head.forEach((lab,i)=>{
+      const key=normHead(lab);
       let f = (idx===p) ? (uiMap[i]||'skip')
-            : (lab&&labelMap[lab]!==undefined ? labelMap[lab] : guess(lab));
+            : (key&&labelMap[key]!==undefined ? labelMap[key] : guess(lab));
       if(f==='skip') return;
       if(f==='date') map.date.push(i);
       else if(map[f]===undefined) map[f]=i;
     });
+    /* 學號是學生名單必要識別欄；即使 Safari 錯誤還原下拉值，也以已辨識的標題自動補回。 */
+    if(map.sid===undefined){
+      const sidCol=info.head.findIndex(lab=>guess(lab)==='sid');
+      if(sidCol>=0) map.sid=sidCol;
+    }
     if(map.sid===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到「學號」欄位，請確認標題列');
-    rowsFromSheet(idx,map,info.sheet.name).forEach(r=>{
+    const parsed=rowsFromSheet(idx,map,info.sheet.name); invalid+=parsed.invalid||0;
+    parsed.forEach(r=>{
       if(seen[r.sid]){ dup++; return; }
       seen[r.sid]=1; all.push(r);
     });
   });
-  all.dup=dup; all.sheets=sel.length;
+  all.dup=dup; all.sheets=sel.length; all.invalid=invalid;
   return all;
 }
-$('#btnCancelImp').onclick=()=>{IMP=null;$('#impStep2').classList.add('hide');msg($('#impMsg'),'');};
+$('#btnCancelImp').onclick=()=>{IMP=null;IMP_READY=null;$('#impStep2').classList.add('hide');msg($('#impMsg'),'');};
 $('#btnPreview').onclick=()=>{
   const P=$('#impPreview'), target=$('#impTarget').value;
+  IMP_READY=null;
   try{
-    const rows=readRows();
+    const rows=readRows(target);
     if(!rows.length){ msg(P,'沒有讀到有效資料，請確認勾選的工作表與標題列。','err'); return; }
     if(rows.staff){
+      IMP_READY={rows,target:'staff'};
       const exist=rows.filter(r=>DB.staff[r.acct]), fresh=rows.filter(r=>!DB.staff[r.acct]);
-      let hs='<div class="notice info">讀到 <b>'+rows.length+'</b> 位教職員：既有 <b>'+exist.length+'</b> 位、新增 <b>'+fresh.length+'</b> 位。'
+      let hs='<div class="notice info">讀到 <b>'+rows.length+'</b> 位教職員：既有 <b>'+exist.length+'</b> 位（保留原資料）、新增 <b>'+fresh.length+'</b> 位。'
         +(rows.dup?'另有 '+rows.dup+' 筆帳號重複已略過。':'')+'</div>'
-        +'<h3>資料預覽（前 10 筆）</h3><div class="scroll"><table><thead><tr><th>帳號</th><th>姓名</th><th>單位</th><th>科目</th></tr></thead><tbody>'
-        +rows.slice(0,10).map(r=>'<tr><td>'+esc(r.acct)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.dept)+'</td><td>'+esc(r.subject)+'</td></tr>').join('')
-        +'</tbody></table></div><div class="row" style="margin-top:14px"><button class="btn" id="btnApply">確認匯入</button></div>';
+        +'<h3>資料預覽（前 10 筆）</h3><div class="scroll"><table><thead><tr><th>Email</th><th>登入帳號</th><th>姓名</th><th>單位</th><th>科目/ 處室</th></tr></thead><tbody>'
+        +rows.slice(0,10).map(r=>'<tr><td>'+esc(r.email||'—')+'</td><td>'+esc(r.acct)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.dept)+'</td><td>'+esc(r.subject)+'</td></tr>').join('')
+        +'</tbody></table></div><div class="row" style="margin-top:14px"><button type="button" class="btn" data-apply-import>確認匯入</button></div>';
       P.innerHTML=hs;
-      $('#btnApply').onclick=()=>applyImport(rows,'staff');
       return;
     }
+    IMP_READY={rows,target};
     const store=target==='roster'?DB.roster:DB.students;
     const exist=rows.filter(r=>store[r.sid]), fresh=rows.filter(r=>!store[r.sid]);
     const changed=exist.filter(r=>r.cls&&store[r.sid].cls&&store[r.sid].cls!==r.cls);
     const missing=Object.values(store).filter(s=>!rows.some(r=>r.sid===s.sid));
+    const newRec=target==='clean'?rows.reduce((n,r)=>{
+      const cur=DB.students[r.sid]; return n+(cur?mergeImportRecords(cur,r.rec).added:r.rec.length);
+    },0):0;
     const bySheet={};
     rows.forEach(r=>{bySheet[r.from]=(bySheet[r.from]||0)+1;});
     let h='<div class="notice info">讀到 <b>'+rows.length+'</b> 筆'
       +(rows.sheets>1?'（'+Object.keys(bySheet).map(k=>esc(k)+' '+bySheet[k]+' 筆').join('、')+'）':'')
       +'：對應到既有名單 <b>'+exist.length+'</b> 筆、新增 <b>'+fresh.length+'</b> 筆。'
       +(rows.dup?'另有 '+rows.dup+' 筆學號重複已略過。':'')
-      +(changed.length?'其中 <b>'+changed.length+'</b> 人班級有變動。':'')
+      +(target==='clean'?'將新增 <b>'+newRec+'</b> 筆尚未存在的完成日期；舊日期與既有學生資料都會保留。':'')
+      +(rows.invalid?'有 <b>'+rows.invalid+'</b> 個無法辨識為日期的內容會略過，不會算成完成。':'')
+      +(changed.length?(target==='classonly'?'其中 <b>'+changed.length+'</b> 人班級將更新。':'偵測到 <b>'+changed.length+'</b> 人班級不同，但此匯入模式不會覆蓋既有班級。'):'')
       +(target==='classonly'&&fresh.length?'（此模式下找不到學號的 '+fresh.length+' 筆會略過）':'')+'</div>';
     if(changed.length){
       h+='<h3>班級異動核對</h3><div class="scroll"><table><thead><tr><th>學號</th><th>姓名</th><th>原班級座號</th><th>新班級座號</th></tr></thead><tbody>'
@@ -1712,46 +1990,83 @@ $('#btnPreview').onclick=()=>{
           return '<tr><td class="num">'+esc(r.sid)+'</td><td>'+esc(r.name||o.name)+'</td><td>'+esc((o.cls||'')+' '+(o.seat||''))+'</td><td>'+esc(r.cls+' '+r.seat)+'</td></tr>';}).join('')
         +'</tbody></table></div>';
     }
-    if(missing.length) h+='<h3>名單中有、但這份檔案沒有的（'+missing.length+' 人）</h3><p class="muted">'
+    if(missing.length) h+='<h3>名單中有、但這份檔案沒有的（'+missing.length+' 人，仍會保留）</h3><p class="muted">'
       +missing.slice(0,50).map(s=>esc((s.cls||'')+' '+(s.seat||'')+' '+s.name)).join('、')+(missing.length>50?' …':'')+'</p>';
-    h+='<h3>資料預覽（前 10 筆）</h3><div class="scroll"><table><thead><tr><th>來源分頁</th><th>學號</th><th>姓名</th><th>班級</th><th>座號</th><th>應打掃</th><th>已登記紀錄</th></tr></thead><tbody>'
-      +rows.slice(0,10).map(r=>'<tr><td class="muted">'+esc(r.from)+'</td><td class="num">'+esc(r.sid)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.cls)+'</td>'
+    h+='<h3>資料預覽（前 10 筆）</h3><div class="scroll"><table><thead><tr><th>來源分頁</th><th>學號</th><th>姓名</th><th>Email</th><th>班級</th><th>座號</th><th>應打掃</th><th>已登記紀錄</th></tr></thead><tbody>'
+      +rows.slice(0,10).map(r=>'<tr><td class="muted">'+esc(r.from)+'</td><td class="num">'+esc(r.sid)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.email||'—')+'</td><td>'+esc(r.cls)+'</td>'
         +'<td class="num">'+esc(r.seat)+'</td><td class="num">'+(r.required==null?'—':r.required)+'</td><td>'+esc(r.rec.map(x=>x.mark).join('、')||'—')+'</td></tr>').join('')
-      +'</tbody></table></div><div class="row" style="margin-top:14px"><button class="btn" id="btnApply">確認匯入</button></div>';
+      +'</tbody></table></div><div class="row" style="margin-top:14px"><button type="button" class="btn" data-apply-import>確認匯入</button></div>';
     P.innerHTML=h;
-    $('#btnApply').onclick=()=>applyImport(rows,target);
   }catch(err){ msg(P,'無法解析：'+esc(err.message),'err'); }
 };
-function snapshot(label){
+/* 確認匯入按鈕是動態產生的，由固定容器統一接收，避免重畫後失去點擊功能。 */
+$('#admImport').addEventListener('click',e=>{
+  const b=e.target.closest('[data-apply-import]');
+  if(!b) return;
+  e.preventDefault();
+  if(!IMP_READY||!IMP_READY.rows||!IMP_READY.rows.length){
+    msg($('#impPreview'),'預覽資料已失效，請重新按「核對並預覽」。','err'); return;
+  }
+  applyImport(IMP_READY.rows,IMP_READY.target);
+});
+function snapshot(label,withBookings){
   DB.undo={ts:new Date().toISOString(),label,
-    students:JSON.parse(JSON.stringify(DB.students)),
-    roster:JSON.parse(JSON.stringify(DB.roster)),
-    staff:JSON.parse(JSON.stringify(DB.staff))};
+    students:clone(DB.students),roster:clone(DB.roster),staff:clone(DB.staff)};
+  if(withBookings) DB.undo.bookings=clone(DB.bookings);
 }
-function undoAvailable(){ return DB.undo&&DB.undo.ts; }
+function undoAvailable(){
+  return !!(DB.undo&&DB.undo.ts&&plain(DB.undo.students)&&plain(DB.undo.roster)
+    &&(DB.undo.staff===undefined||plain(DB.undo.staff))
+    &&(DB.undo.bookings===undefined||Array.isArray(DB.undo.bookings)));
+}
 function doUndo(){
-  if(!undoAvailable()) return;
-  if(!confirm('要復原到「'+DB.undo.label+'」之前的名單狀態嗎？\n（預約紀錄不受影響）')) return;
-  DB.students=DB.undo.students; DB.roster=DB.undo.roster;
-  if(DB.undo.staff) DB.staff=DB.undo.staff;
+  if(!undoAvailable()){
+    alert('目前沒有可復原的名單資料。');
+    renderUndoBox(); return;
+  }
+  const undo=clone(DB.undo), restoresBookings=Array.isArray(undo.bookings);
+  if(!confirm('要復原到「'+undo.label+'」之前的狀態嗎？\n'
+    +(restoresBookings?'相關預約也會一併復原。':'預約紀錄不受影響。'))) return;
+  DB.students=undo.students; DB.roster=undo.roster;
+  if(undo.staff) DB.staff=undo.staff;
+  if(restoresBookings) DB.bookings=undo.bookings;
   DB.undo=null;
-  save(); renderAdmin();
-  msg($('#dataMsg'),'已復原名單。','info');
-  msg($('#impPreview'),'已復原到匯入前的名單。','info');
+  if(!save()){ renderAdmin(); return; }
+  renderAdmin();
+  const done='已復原名單'+(restoresBookings?'與相關預約':'')+'。';
+  msg($('#dataMsg'),done,'info');
+  msg($('#sMsg'),done,'info');
+  msg($('#impMsg'),done,'info');
 }
+/* 復原按鈕是動態產生的，由固定的管理員頁統一處理，避免重畫後失去點擊功能。 */
+$('#viewAdm').addEventListener('click',e=>{
+  const b=e.target.closest('[data-undo-list]');
+  if(!b) return;
+  e.preventDefault(); doUndo();
+});
 function applyImport(rows,target){
+  if(!Array.isArray(rows)||!rows.length){
+    msg($('#impMsg'),'沒有可匯入的資料，系統未做任何變更。','err'); return;
+  }
   snapshot('匯入 '+(IMP?IMP.file:'名單'));
-  let add=0,upd=0,skip=0;
+  let add=0,upd=0,skip=0,kept=0,recAdd=0;
   rows.forEach(r=>{
     if(target==='staff'){
-      if(DB.staff[r.acct]){ DB.staff[r.acct]={acct:r.acct,name:r.name,dept:r.dept,subject:r.subject,email:r.email}; upd++; }
+      if(DB.staff[r.acct]){
+        const cur=DB.staff[r.acct];
+        ['name','dept','subject','email'].forEach(k=>{ if(!cur[k]&&r[k]) cur[k]=r[k]; });
+        kept++;
+      }
       else{ DB.staff[r.acct]={acct:r.acct,name:r.name,dept:r.dept,subject:r.subject,email:r.email}; add++; }
       return;
     }
     if(target==='roster'){
       const cur=DB.roster[r.sid];
-      if(cur){ if(r.name)cur.name=r.name; if(r.cls)cur.cls=r.cls; if(r.seat)cur.seat=r.seat; upd++; }
-      else{ DB.roster[r.sid]={sid:r.sid,name:r.name,cls:r.cls,seat:r.seat}; add++; }
+      if(cur){
+        ['name','email','cls','seat'].forEach(k=>{ if(!cur[k]&&r[k]) cur[k]=r[k]; });
+        kept++;
+      }
+      else{ DB.roster[r.sid]={sid:r.sid,name:r.name,email:r.email,cls:r.cls,seat:r.seat}; add++; }
       return;
     }
     const cur=DB.students[r.sid];
@@ -1764,54 +2079,72 @@ function applyImport(rows,target){
       upd++; return;
     }
     if(cur){
-      if(r.name)cur.name=r.name;
-      if(r.cls){ if(cur.cls&&cur.cls!==r.cls&&!r.oldCls){cur.oldCls=cur.cls;cur.oldSeat=cur.seat;} cur.cls=r.cls; }
-      if(r.seat)cur.seat=r.seat;
-      if(r.classNo)cur.classNo=r.classNo;
-      if(r.oldCls)cur.oldCls=r.oldCls;
-      if(r.oldSeat)cur.oldSeat=r.oldSeat;
-      if(r.required!=null)cur.required=r.required;
-      if(r.note)cur.note=r.note;
-      cur.records=r.rec.concat(recs(cur).filter(x=>x.src!=='import'));
-      upd++;
+      const merged=mergeImportRecords(cur,r.rec);
+      let repaired=false;
+      ['name','email','cls','seat','classNo','oldCls','oldSeat','note'].forEach(k=>{
+        if(!cur[k]&&r[k]){ cur[k]=r[k]; repaired=true; }
+      });
+      /* 匯入只允許把應打掃次數往上補，不會用空白或較小數字清掉舊數值。 */
+      if(r.required!=null&&r.required>(+cur.required||0)){ cur.required=r.required; repaired=true; }
+      if(merged.added){ cur.records=merged.records; recAdd+=merged.added; }
+      if(merged.added||repaired) upd++; else kept++;
     }else{
       DB.students[r.sid]={sid:r.sid,name:r.name,cls:r.cls,seat:r.seat,classNo:r.classNo,
-        oldCls:r.oldCls,oldSeat:r.oldSeat,required:r.required||0,note:r.note,records:r.rec};
+        email:r.email,oldCls:r.oldCls,oldSeat:r.oldSeat,required:r.required||0,note:r.note,records:r.rec};
+      recAdd+=r.rec.length;
       add++;
     }
   });
-  save();
-  $('#impPreview').innerHTML='<div class="notice info">匯入完成：新增 <b>'+add+'</b> 筆、更新 <b>'+upd+'</b> 筆'
-    +(skip?'、略過 '+skip+' 筆':'')+'。</div>'
-    +'<p class="muted">匯錯了嗎？可以馬上復原到匯入前的狀態。</p>'
-    +'<button class="btn warn" id="btnUndoImp">復原這次匯入</button>';
-  $('#btnUndoImp').onclick=doUndo;
-  IMP=null; $('#impStep2').classList.add('hide'); renderAdmin();
+  if(!save()){ renderAdmin(); return; }
+  const total=Object.keys(target==='staff'?DB.staff:target==='roster'?DB.roster:DB.students).length;
+  const label=LIST_LABEL[target]||'名單';
+  const result='匯入完成：新增 <b>'+add+'</b> 筆'
+    +(target==='clean'?'、新增完成日期 <b>'+recAdd+'</b> 筆':'')
+    +(target==='classonly'?'、更新 <b>'+upd+'</b> 筆':'')
+    +(kept?'、保留既有資料 '+kept+' 筆':'')+(skip?'、略過 '+skip+' 筆':'')
+    +'。系統目前的<b>'+label+'</b>共有 <b>'+total+'</b> 筆。'
+    +(target==='classonly'?'':'舊資料沒有被覆蓋。');
+  IMP=null; IMP_READY=null; $('#impStep2').classList.add('hide'); renderAdmin();
+  msg($('#impMsg'),result,'info');
+  $('#impMsg').insertAdjacentHTML('beforeend','<button type="button" class="btn sm warn" data-undo-list>復原名單</button>');
 }
 
 /* ---- 學生資料 ---- */
 function srcKind(){ return $('#sSource').value; }
 function store(){ const k=srcKind(); return k==='roster'?DB.roster:k==='staff'?DB.staff:DB.students; }
+/* Excel 姓名可能含全形空格、換行或不可見字元，搜尋前統一正規化。 */
+function searchText(v){
+  let s=String(v==null?'':v).toLowerCase();
+  if(s.normalize) s=s.normalize('NFKC');
+  return s.replace(/[\s\u200B-\u200D\uFEFF]+/g,'');
+}
 function filtered(){
-  const c=$('#sCls').value, k=$('#sKey').value.trim(), u=$('#sUndone').checked, kind=srcKind();
+  const c=$('#sCls').value, k=searchText($('#sKey').value), u=$('#sUndone').checked, kind=srcKind();
   if(kind==='staff'){
     return Object.values(DB.staff).filter(t=>{
       if(c&&(t.dept||'')!==c) return false;
-      if(k&&!((t.acct||'').includes(k.toLowerCase())||(t.name||'').includes(k))) return false;
+      if(k&&![t.acct,t.name,t.email].some(v=>searchText(v).includes(k))) return false;
       return true;
     }).sort((a,b)=>((a.dept||'')+(a.name||'')).localeCompare((b.dept||'')+(b.name||''),'zh-Hant'));
   }
   return Object.values(store()).filter(s=>{
-    if(c&&s.cls!==c) return false;
-    if(k&&!(s.sid.includes(k)||(s.name||'').includes(k))) return false;
+    const r=kind==='clean'?DB.roster[s.sid]:null, p=kind==='clean'?(person(s.sid)||s):s;
+    if(c&&(p.cls||'')!==c) return false;
+    if(k&&![s.sid,s.name,p.name,r&&r.name].some(v=>searchText(v).includes(k))) return false;
     if(u&&kind==='clean'&&remainSlots(s)<=0) return false;
     return true;
-  }).sort((a,b)=>((a.cls||'')+(a.seat||'')).localeCompare((b.cls||'')+(b.seat||''),'zh-Hant'));
+  }).sort((a,b)=>{
+    const A=kind==='clean'?(person(a.sid)||a):a, B=kind==='clean'?(person(b.sid)||b):b;
+    return ((A.cls||'')+(A.seat||'')).localeCompare((B.cls||'')+(B.seat||''),'zh-Hant');
+  });
 }
 function renderStuTable(){
   const kind=srcKind(), isC=kind==='clean', isS=kind==='staff';
   const cls=new Set();
-  Object.values(store()).forEach(s=>{ const v=isS?s.dept:s.cls; if(v) cls.add(v); });
+  Object.values(store()).forEach(s=>{
+    const p=isC?(person(s.sid)||s):s, v=isS?s.dept:p.cls;
+    if(v) cls.add(v);
+  });
   const sel=$('#sCls'), keep=sel.value;
   sel.innerHTML='<option value="">全部</option>'+Array.from(cls).sort().map(c=>'<option>'+esc(c)+'</option>').join('');
   sel.value=keep;
@@ -1822,18 +2155,18 @@ function renderStuTable(){
   const list=filtered();
   $('#sCount').textContent='共 '+list.length+' 人';
   if(isS){
-    $('#tblStu').querySelector('thead').innerHTML='<tr><th>單位</th><th>姓名</th><th>科目</th><th>帳號</th><th>登記需求</th><th>操作</th></tr>';
-    $('#tblStu').querySelector('tbody').innerHTML=list.map(t=>{
+    $('#tblStu').querySelector('thead').innerHTML='<tr><th>單位</th><th>姓名</th><th>科目/ 處室</th><th>Email</th><th>帳號</th><th>登記需求</th><th>操作</th></tr>';
+    $('#tblStu').querySelector('tbody').innerHTML=list.length?list.map(t=>{
       const n=Object.keys(DB.demands).reduce((a,d)=>a+demandsOf(d).filter(x=>x.byAcct===t.acct).length,0);
-      return '<tr><td>'+esc(t.dept||'')+'</td><td>'+esc(t.name||'')+'</td><td>'+esc(t.subject||'')+'</td>'
+      return '<tr><td>'+esc(t.dept||'')+'</td><td>'+esc(t.name||'')+'</td><td>'+esc(t.subject||'')+'</td><td>'+esc(t.email||'—')+'</td>'
         +'<td class="num">'+esc(t.acct)+'</td><td class="num">'+n+'</td>'
         +'<td><button class="btn sm flat" data-rmstaff="'+esc(t.acct)+'">刪除</button></td></tr>';
-    }).join('');
+    }).join(''):'<tr><td colspan="7" class="muted" style="text-align:center;padding:22px">找不到符合目前條件的資料。</td></tr>';
     $('#tblStu').querySelectorAll('[data-rmstaff]').forEach(b=>b.onclick=()=>{
       const t=DB.staff[b.dataset.rmstaff]; if(!t) return;
       if(!confirm('刪除教職員 '+(t.name||'')+'（'+t.acct+'）？\n他登記過的需求不會被刪除。')) return;
       snapshot('刪除教職員 '+(t.name||t.acct));
-      delete DB.staff[b.dataset.rmstaff]; save(); renderAdmin();
+      delete DB.staff[b.dataset.rmstaff]; if(!save()){ renderAdmin(); return; } renderAdmin();
       msg($('#sMsg'),'已刪除。','info');
     });
     return;
@@ -1841,17 +2174,21 @@ function renderStuTable(){
   $('#tblStu').querySelector('thead').innerHTML= isC
     ? '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>原班級</th><th>應打掃次數</th><th>暑假完成</th><th>應補場次</th><th>已補場次</th><th>已預約</th><th>尚缺場次</th><th>操作</th></tr>'
     : '<tr><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>愛校預約</th><th>操作</th></tr>';
-  $('#tblStu').querySelector('tbody').innerHTML=list.slice(0,800).map(s=> isC
-    ? '<tr><td>'+esc(s.cls||'')+'</td><td class="num">'+esc(s.seat||'')+'</td><td>'+esc(s.name||'')+'</td><td class="num">'+esc(s.sid)+'</td>'
-      +'<td class="muted">'+esc((s.oldCls||'')+' '+(s.oldSeat||''))+'</td><td class="num">'+(s.required||0)+'</td>'
-      +'<td class="num">'+summerRecs(s).length+'</td><td class="num">'+needSlotsTotal(s)+'</td>'
-      +'<td class="num">'+doneSlots(s)+'</td><td class="num">'+activeBookings(s.sid,'clean').length+'</td>'
-      +'<td class="num"><b>'+remainSlots(s)+'</b></td>'
-      +'<td><button class="btn sm flat" data-ed="'+esc(s.sid)+'">編輯</button> '
-      +'<button class="btn sm flat" data-rmstu="'+esc(s.sid)+'">刪除</button></td></tr>'
-    : '<tr><td>'+esc(s.cls||'')+'</td><td class="num">'+esc(s.seat||'')+'</td><td>'+esc(s.name||'')+'</td>'
-      +'<td class="num">'+esc(s.sid)+'</td><td class="num">'+activeBookings(s.sid,'love').length+'</td>'
-      +'<td><button class="btn sm flat" data-rmstu="'+esc(s.sid)+'">刪除</button></td></tr>').join('');
+  $('#tblStu').querySelector('tbody').innerHTML=list.length?list.slice(0,800).map(s=>{
+    const p=isC?(person(s.sid)||s):s;
+    return isC
+      ? '<tr><td>'+esc(p.cls||'')+'</td><td class="num">'+esc(p.seat||'')+'</td><td>'+esc(p.name||'')+'</td><td class="num">'+esc(s.sid)+'</td>'
+        +'<td class="muted">'+esc((s.oldCls||'')+' '+(s.oldSeat||''))+'</td><td class="num">'+(s.required||0)+'</td>'
+        +'<td class="num">'+summerRecs(s).length+'</td><td class="num">'+needSlotsTotal(s)+'</td>'
+        +'<td class="num">'+doneSlots(s)+'</td><td class="num">'+activeBookings(s.sid,'clean').length+'</td>'
+        +'<td class="num"><b>'+remainSlots(s)+'</b></td>'
+        +'<td><button class="btn sm flat" data-ed="'+esc(s.sid)+'">編輯</button> '
+        +'<button class="btn sm flat" data-rmstu="'+esc(s.sid)+'">刪除</button></td></tr>'
+      : '<tr><td>'+esc(s.cls||'')+'</td><td class="num">'+esc(s.seat||'')+'</td><td>'+esc(s.name||'')+'</td>'
+        +'<td class="num">'+esc(s.sid)+'</td><td class="num">'+activeBookings(s.sid,'love').length+'</td>'
+        +'<td><button class="btn sm flat" data-rmstu="'+esc(s.sid)+'">刪除</button></td></tr>';
+    }).join('')
+    :'<tr><td colspan="'+(isC?12:6)+'" class="muted" style="text-align:center;padding:22px">找不到符合目前條件的資料。請檢查名單、班級或「只看未完成」。</td></tr>';
   $('#tblStu').querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>editStu(b.dataset.ed));
   $('#tblStu').querySelectorAll('[data-rmstu]').forEach(b=>b.onclick=()=>removeStudent(b.dataset.rmstu));
 }
@@ -1864,62 +2201,81 @@ $('#btnAddStu').onclick=()=>{
   if(!/^\d{4,}$/.test(sid)){ msg(M,'學號必須是 4 位數以上的數字。','warn'); return; }
   const norm=(function(v){const d=String(v).replace(/\D/g,'');return d?pad2(String(parseInt(d,10))):String(v).trim();})(seat);
   if(kind==='clean'){
-    const req=parseInt($('#nsReq').value,10)||0;
+    const req=Math.max(0,parseInt($('#nsReq').value,10)||0);
     const cur=DB.students[sid], dup=!!cur;
     snapshot(dup?'更新學生 '+nm:'新增學生 '+nm);
     DB.students[sid]=Object.assign({records:[]},cur||{},{sid,name:nm,cls,seat:norm,required:req});
-    save(); msg(M,(dup?'已更新 ':'已新增 ')+esc(nm)+'（'+esc(sid)+'）到補打掃名單。','info');
+    if(!save()){ renderAdmin(); return; } msg(M,(dup?'已更新 ':'已新增 ')+esc(nm)+'（'+esc(sid)+'）到補打掃名單。','info');
   }else{
     const dup=!!DB.roster[sid];
     snapshot(dup?'更新學生 '+nm:'新增學生 '+nm);
     DB.roster[sid]={sid,name:nm,cls,seat:norm};
-    save(); msg(M,(dup?'已更新 ':'已新增 ')+esc(nm)+'（'+esc(sid)+'）到全校名單。','info');
+    if(!save()){ renderAdmin(); return; } msg(M,(dup?'已更新 ':'已新增 ')+esc(nm)+'（'+esc(sid)+'）到全校名單。','info');
   }
   ['#nsSid','#nsName','#nsSeat'].forEach(x=>$(x).value='');
   renderStuTable();
 };
 $('#btnAddStaff').onclick=()=>{
-  const a=$('#stAcct').value.trim().toLowerCase().split('@')[0];
+  const raw=$('#stAcct').value.trim().toLowerCase(), a=raw.split('@')[0];
   const n=$('#stName').value.trim(), d=$('#stDept').value.trim(), sj=$('#stSubj').value.trim();
   const M=$('#sMsg');
   if(!a||!n){ msg(M,'帳號與姓名為必填。','warn'); return; }
   if(!/^[a-z0-9._-]+$/.test(a)){ msg(M,'帳號只能是英數字（信箱 @ 前面那一段）。','warn'); return; }
   const dup=!!DB.staff[a];
-  DB.staff[a]={acct:a,name:n,dept:d,subject:sj,email:''};
-  save(); ['#stAcct','#stName','#stDept','#stSubj'].forEach(x=>$(x).value='');
+  snapshot(dup?'更新教職員 '+n:'新增教職員 '+n);
+  DB.staff[a]={acct:a,name:n,dept:d,subject:sj,email:raw.includes('@')?raw:''};
+  if(!save()){ renderAdmin(); return; } ['#stAcct','#stName','#stDept','#stSubj'].forEach(x=>$(x).value='');
   msg(M,(dup?'已更新 ':'已新增 ')+esc(n)+'（'+esc(a)+'）。','info');
   renderStuTable();
 };
+function bookingsAffectedByRemoval(kind,sids){
+  const set=new Set(sids);
+  if(kind==='staff') return [];
+  return DB.bookings.filter(b=>b.status==='booked'&&set.has(b.sid)).filter(b=>{
+    if(kind==='clean') return b.type==='clean'||!DB.roster[b.sid];
+    return !DB.students[b.sid];
+  });
+}
+function cancelBookings(list){ list.forEach(b=>{b.status='cancel';}); }
+function clearWholeList(kind,label,M){
+  const src=kind==='clean'?DB.students:kind==='staff'?DB.staff:DB.roster;
+  const ids=Object.keys(src), n=ids.length;
+  if(!n){ msg(M,'這份名單本來就是空的。','warn'); return; }
+  const affected=bookingsAffectedByRemoval(kind,ids);
+  let warn='要清空整份「'+label+'」嗎？共 '+n+' 人。';
+  if(affected.length) warn+='\n為避免留下無法完成或無法辨識的預約，相關 '+affected.length+' 筆預約會一併取消，復原名單時也會一起恢復。';
+  else warn+='\n其他名單與預約不受影響。';
+  if(!confirm(warn)) return;
+  if(!confirm('再次確認：'+label+' 的 '+n+' 筆資料將被清除。')) return;
+  snapshot('清空'+label,affected.length>0);
+  cancelBookings(affected);
+  if(kind==='clean') DB.students={}; else if(kind==='staff') DB.staff={}; else DB.roster={};
+  if(!save()){ renderAdmin(); return; }
+  renderAdmin();
+  msg(M,'已清空'+label+'（'+n+' 人）'+(affected.length?'，並取消 '+affected.length+' 筆相關預約':'')+'。','info');
+  M.insertAdjacentHTML('beforeend','<button type="button" class="btn sm warn" data-undo-list>復原名單</button>');
+}
 function removeStudent(sid){
   const isC=srcKind()==='clean';
   const src=isC?DB.students:DB.roster, p=src[sid]; if(!p) return;
-  const bk=DB.bookings.filter(b=>b.sid===sid&&b.status==='booked').length;
   const other=isC?DB.roster[sid]:DB.students[sid];
+  const affected=bookingsAffectedByRemoval(isC?'clean':'roster',[sid]);
   let warn='確定刪除 '+(p.cls||'')+' '+(p.name||'')+'（'+sid+'）？';
-  if(bk) warn+='\n這位同學還有 '+bk+' 筆預約，會一併取消。';
+  if(affected.length) warn+='\n相關 '+affected.length+' 筆預約會一併取消；若復原學生，也會一起恢復。';
   if(other) warn+='\n（另一份名單裡的資料不會被刪除）';
   if(!confirm(warn)) return;
-  snapshot('刪除 '+(p.name||sid));
+  snapshot('刪除 '+(p.name||sid),affected.length>0);
   delete src[sid];
-  if(bk&&!other) DB.bookings.forEach(b=>{ if(b.sid===sid&&b.status==='booked') b.status='cancel'; });
-  save(); renderAdmin();
+  cancelBookings(affected);
+  if(!save()){ renderAdmin(); return; }
+  renderAdmin();
   msg($('#sMsg'),'已刪除 '+esc(p.name||sid)+'。若刪錯了，可在下方或「備份與設定」按復原。','info');
-  $('#sMsg').insertAdjacentHTML('beforeend','<button class="btn sm warn" id="btnUndoDel">復原刪除</button>');
-  $('#btnUndoDel').onclick=doUndo;
+  $('#sMsg').insertAdjacentHTML('beforeend','<button type="button" class="btn sm warn" data-undo-list>復原名單</button>');
 }
 $('#btnClearList').onclick=()=>{
   const kind=srcKind();
   const label=kind==='clean'?'補打掃名單':kind==='staff'?'教職員名單':'全校學生名單';
-  const n=Object.keys(store()).length;
-  if(!n){ msg($('#sMsg'),'這份名單本來就是空的。','warn'); return; }
-  if(!confirm('要清空整份「'+label+'」嗎？共 '+n+' 人。\n（預約紀錄與另一份名單不受影響，之後仍可按復原）')) return;
-  if(!confirm('再次確認：'+label+' 的 '+n+' 筆資料將被清除。')) return;
-  snapshot('清空'+label);
-  if(kind==='clean') DB.students={}; else if(kind==='staff') DB.staff={}; else DB.roster={};
-  save(); renderAdmin();
-  msg($('#sMsg'),'已清空'+label+'（'+n+' 人）。','info');
-  $('#sMsg').insertAdjacentHTML('beforeend','<button class="btn sm warn" id="btnUndoClr">復原清空</button>');
-  $('#btnUndoClr').onclick=doUndo;
+  clearWholeList(kind,label,$('#sMsg'));
 };
 function editStu(sid){
   const s=DB.students[sid]; if(!s) return;
@@ -1934,20 +2290,35 @@ function editStu(sid){
     +'<h3 style="margin-top:10px">完成紀錄</h3>'
     +(rs.length?'<table><thead><tr><th>日期／代碼</th><th>地點</th><th>來源</th><th></th></tr></thead><tbody>'
       +rs.map((r,i)=>'<tr><td class="num">'+esc(recLabel(r))+'</td><td>'+esc(r.place||'—')+'</td>'
-        +'<td>'+(r.src==='import'?'暑假登記表（1 次）':r.src==='booking'?'預約完成（1 場）':'人工補登（1 場）')+'</td>'
+        +'<td>'+(r.src==='import'?'Excel 匯入（1 次）':r.src==='summer-manual'?'人工補登返校打掃（1 次）':r.src==='booking'?'預約完成（1 場）':'人工補登（1 場）')+'</td>'
         +'<td><button class="btn sm flat" data-dr="'+i+'">刪除</button></td></tr>').join('')+'</tbody></table>'
       :'<p class="muted">尚無紀錄。</p>')
     +'<div class="row" style="margin-top:12px;align-items:flex-end">'
+    +'<label class="field" style="margin-bottom:0"><span>紀錄類型</span><select id="eKind"><option value="manual">中午補掃（1 場）</option><option value="summer-manual">返校打掃（1 次）</option></select></label>'
     +'<label class="field" style="margin-bottom:0"><span>補登日期</span><input type="date" id="eDate" value="'+today()+'"></label>'
     +'<label class="field" style="margin-bottom:0"><span>地點</span><input id="ePlace" placeholder="選填" style="width:150px"></label>'
     +'<button class="btn sm" id="eAdd">補登一次</button></div>';
   openDlg(h);
-  $('#eSave').onclick=()=>{s.cls=$('#eCls').value.trim();s.seat=$('#eSeat').value.trim();
-    s.required=parseInt($('#eReq').value,10)||0;save();$('#dlg').close();renderAdmin();};
-  $('#eAdd').onclick=()=>{s.records=recs(s).concat([{src:'manual',date:$('#eDate').value,mark:'',place:$('#ePlace').value.trim()}]);
-    save();editStu(sid);renderStuTable();};
+  $('#eSave').onclick=()=>{
+    snapshot('編輯學生 '+(s.name||sid));
+    s.cls=$('#eCls').value.trim();s.seat=$('#eSeat').value.trim();
+    s.required=Math.max(0,parseInt($('#eReq').value,10)||0);
+    if(!save()){editStu(sid);return;} $('#dlg').close();renderAdmin();
+  };
+  $('#eAdd').onclick=()=>{
+    const date=$('#eDate').value; if(!date){alert('請選擇補登日期。');return;}
+    snapshot('補登 '+(s.name||sid)+' 完成紀錄');
+    s.records=recs(s).concat([{src:$('#eKind').value,date,mark:'',place:$('#ePlace').value.trim()}]);
+    if(!save()){editStu(sid);renderStuTable();return;} editStu(sid);renderStuTable();
+  };
   $('#dlgBody').querySelectorAll('[data-dr]').forEach(b=>b.onclick=()=>{
-    s.records.splice(+b.dataset.dr,1); save(); editStu(sid); renderStuTable();
+    if(!confirm('刪除這筆完成紀錄？')) return;
+    const i=+b.dataset.dr, record=s.records[i];
+    const booking=record&&record.bid?DB.bookings.find(x=>x.id===record.bid&&x.status==='completed'):null;
+    snapshot('刪除 '+(s.name||sid)+' 完成紀錄',!!booking);
+    s.records.splice(i,1);
+    if(booking) booking.status='booked';
+    if(!save()){editStu(sid);renderStuTable();return;} editStu(sid); renderStuTable();
   });
 }
 
@@ -1964,7 +2335,7 @@ function renderAccounts(){
   $('#acList').querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{
     if(DB.admins.length<=1){ msg($('#acMsg'),'至少要保留一位管理員。','warn'); return; }
     if(!confirm('刪除管理員 '+b.dataset.rm+'？')) return;
-    DB.admins=DB.admins.filter(a=>a.user!==b.dataset.rm); save(); renderAccounts();
+    DB.admins=DB.admins.filter(a=>a.user!==b.dataset.rm); if(!save()){ renderAccounts(); return; } renderAccounts();
   });
 }
 $('#btnAddAdm').onclick=()=>{
@@ -1973,7 +2344,7 @@ $('#btnAddAdm').onclick=()=>{
   if(p.length<6){ msg(M,'密碼至少 6 碼。','warn'); return; }
   if(DB.admins.some(a=>a.user===u)){ msg(M,'這個帳號已經存在。','err'); return; }
   DB.admins.push({user:u,disp:d,hash:hashPw(u,p),created:today()});
-  save(); $('#newUser').value='';$('#newDisp').value='';$('#newPass').value='';
+  if(!save()){ renderAccounts(); return; } $('#newUser').value='';$('#newDisp').value='';$('#newPass').value='';
   msg(M,'已新增管理員 '+esc(u)+'。','info'); renderAccounts();
 };
 $('#btnChgPass').onclick=()=>{
@@ -1995,8 +2366,8 @@ $('#btnChgPass').onclick=()=>{
   a.user=nu; a.disp=nd;
   a.hash=hashPw(nu,np||cur);
   if(nu!==old) Object.keys(DB.demands).forEach(d=>DB.demands[d].forEach(x=>{ if(x.by===old) x.by=nu; }));
+  if(!save()){ renderAccounts(); return; }
   SESSION.user=nu;
-  save();
   $('#oldPass').value=''; $('#chgPass').value='';
   $('#whoText').textContent='管理者　'+(a.disp||a.user);
   msg(M,changed.join('，')+'。'+(nu!==old?'下次請用新帳號登入。':''),'info');
@@ -2014,18 +2385,26 @@ function renderUndoBox(){
   const t=new Date(DB.undo.ts);
   box.innerHTML='<p class="muted" style="margin:0 0 10px">最近一次名單異動：<b>'+esc(DB.undo.label)+'</b>　'
     +t.getMonth()+1+'/'+t.getDate()+' '+pad2(t.getHours())+':'+pad2(t.getMinutes())+'</p>'
-    +'<button class="btn warn" id="btnUndoNow">復原這次異動</button>';
-  $('#btnUndoNow').onclick=doUndo;
+    +(Array.isArray(DB.undo.bookings)?'<p class="muted">這次復原會連同相關預約一起還原。</p>':'')
+    +'<button type="button" class="btn warn" data-undo-list>復原名單</button>';
 }
 $('#btnBackupJson').onclick=()=>{
-  DB.lastBackup=new Date().toISOString(); save();
+  DB.lastBackup=new Date().toISOString(); if(!save()) return;
   dl(new Blob([JSON.stringify(DB)],{type:'application/json'}),'補掃愛校備份_'+today()+'.json');
   msg($('#dataMsg'),'JSON 備份已下載，請存到雲端硬碟或隨身碟。','info'); backupHint();
 };
-$('#btnBackupXlsx').onclick=()=>{
+async function exportBackupXlsx(){
   const PINK=2, GREY=3, HEAD=1, PHEAD=4;
-  const stu=Object.values(DB.students).sort((x,y)=>
-    ((x.cls||'')+(x.seat||'')).localeCompare((y.cls||'')+(y.seat||''),'zh-Hant'));
+  const stu=Object.values(DB.students).sort((x,y)=>{
+    const X=person(x.sid)||x, Y=person(y.sid)||y;
+    return ((X.cls||'')+(X.seat||'')).localeCompare((Y.cls||'')+(Y.seat||''),'zh-Hant');
+  });
+  if(!stu.length){
+    const rosterN=Object.keys(DB.roster).length;
+    msg($('#dataMsg'),'目前<b>補打掃名單是 0 筆</b>，已停止下載空白 Excel。'
+      +(rosterN?'全校學生名單已有 '+rosterN+' 筆，但返校打掃紀錄必須另外選擇「補打掃名單」完成匯入。':'請先到「名單匯入」完成補打掃名單匯入。'),'err');
+    return null;
+  }
   /* 暑假欄位數：至少 5，若有人超過就加寬 */
   let sumCols=5, slotCols=15;
   stu.forEach(t=>{
@@ -2040,11 +2419,12 @@ $('#btnBackupXlsx').onclick=()=>{
   const prog=[['學號','班級','座號','姓名','原班級','應打掃次數','暑假已完成','應補場次','已補場次','尚缺場次']
     .map(h=>({v:h,s:HEAD})).concat(sumHead,slotHead)];
   stu.forEach(t=>{
+    const p=person(t.sid)||t;
     const sm=summerRecs(t).map(r=>r.mark||recLabel(r));
     const sl=slotRecs(t).slice().sort((p,q)=>(p.date||'')<(q.date||'')?-1:1)
       .map(r=>r.date?r.date.slice(5).replace('-',''):(r.mark||'✓'));
     const need=needSlotsTotal(t);
-    const row=[t.sid,t.cls||'',t.seat||'',t.name||'',(t.oldCls||'')+((t.oldSeat)?' '+t.oldSeat:''),
+    const row=[t.sid,p.cls||'',p.seat||'',p.name||'',(t.oldCls||'')+((t.oldSeat)?' '+t.oldSeat:''),
       t.required||0,summerRecs(t).length,need,doneSlots(t),remainSlots(t)];
     for(let i=0;i<sumCols;i++) row.push(sm[i]||'');
     for(let i=0;i<slotCols;i++){
@@ -2059,11 +2439,12 @@ $('#btnBackupXlsx').onclick=()=>{
     .concat(sumHead,[{v:'暑假已完成',s:HEAD},{v:'應補場次',s:HEAD}],slotHead,
       [{v:'尚缺場次',s:HEAD},{v:'備註',s:HEAD},{v:'簽名欄',s:HEAD},{v:'原班級',s:HEAD},{v:'學號',s:HEAD}])];
   stu.forEach(t=>{
+    const p=person(t.sid)||t;
     const sm=summerRecs(t).map(r=>r.mark||recLabel(r));
     const sl=slotRecs(t).slice().sort((p,q)=>(p.date||'')<(q.date||'')?-1:1)
       .map(r=>r.date?r.date.slice(5).replace('-',''):(r.mark||'✓'));
     const need=needSlotsTotal(t);
-    const row=[t.cls||'',t.classNo||'',t.seat||'',t.name||'',t.required||0];
+    const row=[p.cls||'',t.classNo||'',p.seat||'',p.name||'',t.required||0];
     for(let i=0;i<sumCols;i++) row.push(sm[i]||'');
     row.push(summerRecs(t).length,need);
     for(let i=0;i<slotCols;i++) row.push(i<need?{v:sl[i]||'',s:PINK}:{v:'',s:GREY});
@@ -2072,51 +2453,79 @@ $('#btnBackupXlsx').onclick=()=>{
   });
 
   /* 3) 每日名單（可印出當簽到表） */
-  const day=[['日期','星期','時段','類別','地點','核發教師','班級','座號','姓名','簽名'].map(h=>({v:h,s:HEAD}))];
-  const dates=Array.from(new Set(DB.bookings.filter(b=>b.status==='booked').map(b=>b.date))).sort();
+  const day=[['日期','星期','時段','類別','地點','核發教師','班級','座號','姓名','狀態','簽名'].map(h=>({v:h,s:HEAD}))];
+  const dates=Array.from(new Set(DB.bookings.filter(attendedBooking).map(b=>b.date))).sort();
   dates.forEach(d=>{
-    DB.bookings.filter(b=>b.date===d&&b.status==='booked')
+    DB.bookings.filter(b=>b.date===d&&attendedBooking(b))
       .sort((x,y)=>{const A=person(x.sid)||{},B=person(y.sid)||{};
         return ((A.cls||'')+(A.seat||'')).localeCompare((B.cls||'')+(B.seat||''),'zh-Hant');})
       .forEach(b=>{const p=person(b.sid)||{};
-        day.push([d,'週'+wd(d),b.slot,TYPE[b.type].name,b.place,b.teacher||'',p.cls||'',p.seat||'',p.name||'','']);});
+        day.push([d,'週'+wd(d),b.slot,TYPE[b.type].name,b.place||PLACE_TBD,b.teacher||'',p.cls||'',p.seat||'',p.name||'',b.status==='completed'?'已完成':'已預約','']);});
     day.push([]);
   });
 
-  const x=buildXlsx([{name:'補打掃進度',rows:prog},{name:'各班核對表',rows:chk},{name:'每日名單',rows:day}]);
-  dl(new Blob([x],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'返掃愛校_'+today()+'.xlsx');
-  msg($('#dataMsg'),'Excel 已下載（補打掃進度、各班核對表、每日名單）。粉紅欄是開學後的中午補掃，深灰是不需要用到的場次。這份不能倒回系統，還原請用 JSON。','info');
-};
+  const exportSheets=[{name:'補打掃進度',rows:prog},{name:'各班核對表',rows:chk},{name:'每日名單',rows:day}];
+  const x=buildXlsx(exportSheets);
+
+  /* 下載前重新讀取剛產生的檔案。只有標題、資料列遺失或筆數不符時，禁止下載。 */
+  try{
+    const check=await parseXlsx(x.buffer.slice(x.byteOffset,x.byteOffset+x.byteLength));
+    const progress=check.find(s=>s.name==='補打掃進度');
+    const classList=check.find(s=>s.name==='各班核對表');
+    const progressRows=progress?progress.rows.slice(1).filter(r=>r&&r.some(v=>v!==null&&v!=='')):[];
+    const classRows=classList?classList.rows.slice(1).filter(r=>r&&r.some(v=>v!==null&&v!=='')):[];
+    if(!progress||!classList||progressRows.length!==stu.length||classRows.length!==stu.length){
+      throw new Error('預期 '+stu.length+' 筆，但產出的工作表分別讀回 '+progressRows.length+'、'+classRows.length+' 筆');
+    }
+    /* 逐筆核對學號，避免只有列數相同但內容沒有真正寫入。 */
+    const expect=stu.map(s=>String(s.sid)).sort();
+    const actual=progressRows.map(r=>String(r[0]==null?'':r[0])).sort();
+    if(expect.some((sid,i)=>sid!==actual[i])) throw new Error('產出檔案的學號與系統名單不一致');
+  }catch(err){
+    msg($('#dataMsg'),'Excel 產檔自我檢查失敗，已停止下載，避免得到空白名單：'+esc(err.message)+'。請先下載 JSON 備份保留資料。','err');
+    return null;
+  }
+
+  dl(new Blob([x],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'返掃愛校_'+today()+'_'+stu.length+'筆.xlsx');
+  msg($('#dataMsg'),'Excel 已完成產檔檢查並下載，共匯出 <b>'+stu.length+'</b> 位補打掃學生（檔名也會標示 '+stu.length+' 筆）。補打掃進度與各班核對表均已讀回核對為 <b>'+stu.length+'</b> 筆。粉紅欄是開學後的中午補掃，深灰是不需要用到的場次。這份不能倒回系統，還原請用 JSON。','info');
+  return x;
+}
+$('#btnBackupXlsx').onclick=exportBackupXlsx;
 $('#fileRestore').onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
   const fr=new FileReader();
   fr.onload=()=>{
     try{
       const d=JSON.parse(fr.result);
-      if(!d.settings||!(d.students||d.roster)) throw new Error('格式不符');
+      const restored=normalizeDB(d);
       if(!confirm('還原會覆蓋目前所有資料，確定嗎？')) return;
-      DB=d; fill(DB,defaultDB()); save();
+      DB=restored;
+      if(!save()){ renderAdmin(); return; }
       msg($('#dataMsg'),'已還原備份。','info'); renderAdmin();
     }catch(err){ msg($('#dataMsg'),'還原失敗：'+esc(err.message),'err'); }
   };
   fr.readAsText(f); e.target.value='';
 };
 $('#btnSaveSet').onclick=()=>{
-  const sl=$('#setSlot').value.trim(); if(sl) DB.settings.slot=sl;
+  const sl=$('#setSlot').value.trim(), tm=/(\d{1,2})\s*:\s*(\d{2})/.exec(sl);
+  if(!tm||+tm[1]>23||+tm[2]>59){ msg($('#dataMsg'),'時段格式無法辨識，請使用例如 12:30-13:00。','err'); return; }
+  DB.settings.slot=sl;
   DB.settings.loveMax=Math.max(1,parseInt($('#setMax').value,10)||3);
   DB.settings.unit=Math.max(1,parseInt($('#setUnit').value,10)||3);
   DB.settings.idle=Math.max(0,parseInt($('#setIdle').value,10)||0);
   DB.settings.startYear=parseInt($('#setYear').value,10)||DB.settings.startYear;
-  save(); msg($('#dataMsg'),'設定已儲存。','info'); renderAdmin();
+  if(!save()){ renderAdmin(); return; }
+  msg($('#dataMsg'),'設定已儲存。','info'); renderAdmin();
 };
 $('#btnClearBk').onclick=()=>{
   if(!confirm('清除所有預約紀錄？（名單與打掃紀錄會保留）')) return;
-  DB.bookings=[]; save(); msg($('#dataMsg'),'預約已清除。','info'); renderAdmin();
+  snapshot('清除所有預約',true);
+  DB.bookings=[]; if(!save()){ renderAdmin(); return; } msg($('#dataMsg'),'預約已清除；如為誤操作，可使用下方「復原」。','info'); renderAdmin();
 };
 $('#btnClearAll').onclick=()=>{
   if(!confirm('這會刪除名單、預約、需求與管理員帳號，確定嗎？')) return;
   if(!confirm('再次確認：所有資料將無法復原。建議先下載 JSON 備份。')) return;
-  DB=defaultDB(); save(); gate();
+  DB=defaultDB(); if(!save()) return; gate();
 };
 
 /* ---- 啟動 ---- */
@@ -2124,6 +2533,7 @@ load();
 $('#dDate').value=today(); $('#bFrom').value=today(); $('#cFrom').value=today();
 const nx=new Date(); nx.setDate(nx.getDate()+14); $('#bTo').value=ymd(nx);
 gate();
+if(LOAD_ERROR) msg($('#gateMsg'),'偵測到本機資料格式異常，系統尚未覆蓋原資料。請以管理員登入後還原最近的 JSON 備份。原因：'+esc(LOAD_ERROR),'err');
 })();
 </script>
 </body>
