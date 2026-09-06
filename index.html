@@ -795,6 +795,18 @@ async function parseXlsx(buf){
       rows[ri]=arr;
     }
     for(let i=0;i<rows.length;i++) if(!rows[i]) rows[i]=[];
+    /* 將 Excel 合併儲存格的左上角內容展開到合併範圍，避免處室／科目在後續列被讀成空白。 */
+    (xml.match(/<mergeCell[^>]*ref="[^"]+"[^>]*\/>/g)||[]).forEach(tag=>{
+      const ref=(tag.match(/ref="([A-Z]+)(\d+):([A-Z]+)(\d+)"/)||[]);
+      if(!ref.length) return;
+      const c1=colIdx(ref[1]),r1=+ref[2]-1,c2=colIdx(ref[3]),r2=+ref[4]-1;
+      const v=rows[r1]&&rows[r1][c1];
+      if(v==null||v==='') return;
+      for(let rr=r1;rr<=r2;rr++){
+        if(!rows[rr]) rows[rr]=[];
+        for(let cc=c1;cc<=c2;cc++) if(rows[rr][cc]==null||rows[rr][cc]==='') rows[rr][cc]=v;
+      }
+    });
     out.push({name:sh.name,rows});
   }
   return out;
@@ -1336,7 +1348,7 @@ function slipHtml(){
   const p=person(SESSION.sid);
   const list=activeBookings(SESSION.sid).sort((a,b)=>a.date<b.date?-1:1);
   if(!list.length) return '<p class="muted">你目前沒有任何預約。</p>';
-  return '<div class="slip"><div class="who">'+esc(p.cls)+'　'+esc(p.name)+'</div><ol>'
+  return '<div class="slip"><div class="who">'+esc(p.cls)+'　'+esc(p.name)+'　<span class="num">學號：'+esc(SESSION.sid)+'</span></div><ol>'
     +list.map(b=>'<li><b>'+b.date.replace(/-/g,'/')+'（週'+wd(b.date)+'）'+esc(b.slot)+'</b><br>'
       +esc(b.place||PLACE_TBD)+(b.teacher?'　'+esc(b.teacher)+' 老師':'')+'　<span class="tag '+TYPE[b.type].cls+'">'+TYPE[b.type].name+'</span></li>').join('')
     +'</ol><div class="remind">當天中午請直接到<b>學務處</b>集合，由衛生組分派工作地點。<br>請把以上日期抄到你的<b>愛校單</b>上，完成後記得請現場老師簽名或蓋章，沒有簽名就不算完成。</div></div>';
@@ -1498,6 +1510,7 @@ function dayInfo(d,mode){
    管理端
    ============================================================ */
 let acalYM=null;
+let bookingFiltersInitialized=false;
 $('#admTabs').addEventListener('click',e=>{
   const b=e.target.closest('button[data-t]'); if(!b) return;
   $$('#admTabs button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
@@ -1505,6 +1518,11 @@ $('#admTabs').addEventListener('click',e=>{
     students:'#admStudents',accounts:'#admAccounts',data:'#admData'};
   $$('.admpane').forEach(p=>p.classList.add('hide'));
   $(map[b.dataset.t]).classList.remove('hide');
+  /* 第一次進入預約管理時明確清空瀏覽器可能自動還原的舊篩選，預設顯示全部預約。 */
+  if(b.dataset.t==='bookings'&&!bookingFiltersInitialized){
+    $('#qDate').value=''; $('#qType').value=''; $('#qCls').value='';
+    bookingFiltersInitialized=true;
+  }
   renderAdmin();
 });
 const LIST_LABEL={roster:'全校學生名單',clean:'補打掃名單',classonly:'補打掃名單',staff:'教職員名單'};
@@ -1659,7 +1677,7 @@ function renderClosed(){
 /* ---- 預約管理 ---- */
 function queryRows(){
   const d=$('#qDate').value, t=$('#qType').value, c=$('#qCls').value.trim();
-  return DB.bookings.filter(b=>b.status==='booked')
+  return DB.bookings.filter(attendedBooking)
     .filter(b=>(!d||b.date===d)&&(!t||b.type===t))
     .filter(b=>{ if(!c) return true; const p=person(b.sid); return p&&(p.cls||'').includes(c); })
     .sort((a,b)=>{ if(a.date!==b.date) return a.date<b.date?-1:1;
@@ -1670,15 +1688,16 @@ function renderQuery(){
   const list=queryRows(), box=$('#qList');
   if(!list.length){ box.innerHTML='<p class="muted">沒有符合條件的預約。</p>'; return; }
   box.innerHTML='<p class="muted">共 '+list.length+' 筆。時段開始後會自動釋放學生端的預約額度；補打掃仍需由衛生組記為完成。</p>'
-    +'<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>核發老師</th><th>班級</th><th>座號</th><th>姓名</th><th>操作</th></tr></thead><tbody>'
+    +'<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>核發老師</th><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>狀態／操作</th></tr></thead><tbody>'
     +list.map(b=>{const p=person(b.sid)||{};
       return '<tr><td class="num">'+b.date.slice(5).replace('-','/')+'（週'+wd(b.date)+'）</td>'
         +'<td><span class="tag '+TYPE[b.type].cls+'">'+TYPE[b.type].name+'</span></td>'
         +'<td>'+esc(b.place||PLACE_TBD)+'</td><td>'+esc(b.teacher||'—')+'</td>'
-        +'<td>'+esc(p.cls||'')+'</td><td class="num">'+esc(p.seat||'')+'</td><td>'+esc(p.name||b.sid)+'</td>'
-        +'<td><button class="btn sm flat" data-del="'+b.id+'">取消</button>'
-        +(b.type==='clean'?' <button class="btn sm" data-done="'+b.id+'"'+(!slotHasStarted(b.date)?' disabled title="時段尚未開始"':'')+'>'
-          +(!slotHasStarted(b.date)?'尚未開始':'記為完成')+'</button>':'')+'</td></tr>';}).join('')
+        +'<td>'+esc(p.cls||'')+'</td><td class="num">'+esc(p.seat||'')+'</td><td>'+esc(p.name||b.sid)+'</td><td class="num">'+esc(b.sid)+'</td>'
+        +'<td>'+(b.status==='completed'?'<span class="tag wait">已完成</span>'
+          :'<button class="btn sm flat" data-del="'+b.id+'">取消</button>'
+            +(b.type==='clean'?' <button class="btn sm" data-done="'+b.id+'"'+(!slotHasStarted(b.date)?' disabled title="時段尚未開始"':'')+'>'
+              +(!slotHasStarted(b.date)?'尚未開始':'記為完成')+'</button>':''))+'</td></tr>';}).join('')
     +'</tbody></table></div>';
   box.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{
     if(!confirm('取消這筆預約？')) return;
@@ -1714,12 +1733,13 @@ function normHead(h){
 function guessStaff(h){
   const s=normHead(h);
   if(!s) return 'skip';
+  if(/行政公務信箱|群組信箱|共用信箱|單位信箱/.test(s)) return 'skip';
   if(/信箱|email|e-mail|mail|電子郵件/i.test(s)) return 'email';
   if(/帳號|acct|account|登入名稱|使用者/i.test(s)) return 'acct';
   if(/姓名|教師|老師|職員/.test(s)) return 'name';
   if(/科目.*處室|處室.*科目/.test(s)) return 'subject';
   if(/單位|處室|科別|組別|部門/.test(s)) return 'dept';
-  if(/科目|任教|領域/.test(s)) return 'subject';
+  if(/科目|任教|領域|職務|職稱|學科/.test(s)) return 'subject';
   return 'skip';
 }
 const guessFor=(h,target)=>isStaffImport(target)?guessStaff(h):guess(h);
@@ -1818,17 +1838,50 @@ function headInfo(idx,useManual){
   for(let i=0;i<w;i++) out.push(String(head[i]==null?'':head[i]).replace(/[\r\n]+/g,' ').trim());
   return {sheet:sh,hr,head:out};
 }
+function staffNameLike(v){
+  const s=String(v==null?'':v).normalize('NFKC').replace(/[\s\u200B-\u200D\u2060\uFEFF]/g,'');
+  if(!/^[\u3400-\u9FFF]{2,6}$/.test(s)) return false;
+  return !/(處|室|組|部|科|校|中心|辦公|主任|組長|秘書|幹事|技士|助理|教師|老師|教官|職員|行政)/.test(s);
+}
+/* 沒有「姓名」標題時，從個人 Email 同列附近的中文姓名內容推斷。 */
+function inferStaffNameCol(info,emailCol){
+  const heads=info.head;
+  if(emailCol===undefined){
+    emailCol=heads.findIndex(h=>/個人/.test(normHead(h))&&guessStaff(h)==='email');
+    if(emailCol<0) emailCol=heads.findIndex(h=>guessStaff(h)==='email');
+  }
+  if(emailCol<0) return -1;
+  let best=-1,bestScore=-1;
+  for(let c=0;c<heads.length;c++){
+    if(c===emailCol) continue;
+    const hf=guessStaff(heads[c]);
+    if(hf!=='skip'&&hf!=='name') continue;
+    let paired=0,matched=0;
+    for(let r=info.hr+1;r<Math.min(info.sheet.rows.length,info.hr+501);r++){
+      const row=info.sheet.rows[r]||[], mail=String(row[emailCol]==null?'':row[emailCol]).trim();
+      if(!/@/.test(mail)) continue;
+      paired++;
+      if(staffNameLike(row[c])) matched++;
+    }
+    if(!matched) continue;
+    const ratio=matched/Math.max(1,paired);
+    const score=ratio*100+matched-Math.abs(c-emailCol)*0.25+(c===emailCol-1?5:0);
+    if(ratio>=.45&&score>bestScore){ best=c; bestScore=score; }
+  }
+  return best;
+}
 function buildMap(){
   IMP_READY=null;
   if(!IMP||!picked().length){ $('#impMap').innerHTML='<p class="muted">請至少勾選一個工作表。</p>'; return; }
   const target=$('#impTarget').value;
-  const {head}=headInfo(primary(),picked().length===1);
+  const info=headInfo(primary(),picked().length===1), head=info.head;
+  const inferredName=isStaffImport(target)?inferStaffNameCol(info):-1;
   const defaults=[];
   $('#impMap').innerHTML=head.map((t,i)=>{
     const auto=!isStaffImport(target)&&isAutoCol(t);
-    const field=auto?'skip':guessFor(t,target), recognized=field!=='skip';
+    const field=auto?'skip':(i===inferredName?'name':guessFor(t,target)), recognized=field!=='skip';
     defaults[i]=recognized?'import':'skip';
-    const hint=auto?'系統自動計算':recognized?'自動辨識：'+FIELD_LABEL[field]:'未辨識，預設不匯入';
+    const hint=auto?'系統自動計算':recognized?'自動辨識：'+FIELD_LABEL[field]+(i===inferredName?'（依內容）':''):'未辨識，預設不匯入';
     const opts='<option value="import"'+(recognized?' selected':'')+(!recognized?' disabled':'')+'>匯入</option>'
       +'<option value="skip"'+(!recognized?' selected':'')+'>不匯入</option>';
     return '<label class="field" style="margin-bottom:0'+(!recognized?';opacity:.62':'')+'"><span>'+(t?esc(t):'第 '+(i+1)+' 欄（無標題）')
@@ -1870,17 +1923,20 @@ function rowsFromSheet(idx,map,sheetName){
 }
 function staffRowsFrom(idx,map,sheetName){
   const info=headInfo(idx,picked().length===1&&idx===primary());
-  const out=[];
+  const out=[], carry={dept:''};
   for(let i=info.hr+1;i<info.sheet.rows.length;i++){
     const r=info.sheet.rows[i]; if(!r||!r.length) continue;
     const txt=c=>{const v=(c===undefined?null:r[c]);return v==null?'':String(v).trim();};
+    const rowDept=txt(map.dept), rowSubject=txt(map.subject);
+    if(rowDept) carry.dept=rowDept;
     const email=txt(map.email);
     const raw=txt(map.acct)||email;
     const acct=raw.toLowerCase().split('@')[0].trim();
-    const name=txt(map.name);
+    const name=txt(map.name).replace(/\s/g,'');
     if(!acct||!name) continue;
     if(!/^[a-z0-9._-]+$/.test(acct)) continue;
-    out.push({acct,name,dept:txt(map.dept),subject:txt(map.subject),email:email||(raw.includes('@')?raw:''),from:sheetName});
+    out.push({acct,name,dept:rowDept||carry.dept,subject:rowSubject,
+      email:email||(raw.includes('@')?raw:''),from:sheetName});
   }
   return out;
 }
@@ -1906,8 +1962,12 @@ function readRows(target){
         const f=guessStaff(lab);
         if((f==='email'||f==='acct'||f==='name')&&map[f]===undefined) map[f]=i;
       });
+      if(map.name===undefined){
+        const inferred=inferStaffNameCol(info,map.email!==undefined?map.email:map.acct);
+        if(inferred>=0) map.name=inferred;
+      }
       if(map.acct===undefined&&map.email===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到「Email／帳號」欄位');
-      if(map.name===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到「姓名」欄位');
+      if(map.name===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到可辨識的姓名欄位；請確認姓名是否與個人公務信箱位於同一列');
       staffRowsFrom(idx,map,info.sheet.name).forEach(r=>{
         if(seen[r.acct]){ dup++; return; }
         seen[r.acct]=1; all.push(r);
