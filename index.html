@@ -889,7 +889,7 @@ function buildXlsx(sheets){
 
 /* ---------- 資料 ---------- */
 const KEY='hygieneBooking.v2';
-let DB=null, LAST_SAVED_RAW=null, LOAD_ERROR='';
+let DB=null, LAST_SAVED_RAW=null, LOAD_ERROR='', PENDING_UNDO=null;
 function defaultDB(){
   const n=new Date();
   return {
@@ -956,7 +956,12 @@ function normalizeDB(d){
   };
   d.bookings.forEach(checkBooking);
   d.admins.forEach(a=>{ if(!plain(a)||!a.user||!a.hash) throw new Error('管理員資料格式不符'); });
-  if(d.undo!=null){
+  if(d.undo!=null&&d.undo.format===2){
+    if(!validUndo(d.undo)) throw new Error('復原資料格式不符');
+    d.undo.changes.filter(x=>x.store==='bookings').forEach(x=>{
+      x.before.forEach(checkBooking); x.after.forEach(checkBooking);
+    });
+  }else if(d.undo!=null){
     if(!plain(d.undo)||!plain(d.undo.students)||!plain(d.undo.roster)
       ||(d.undo.staff!==undefined&&!plain(d.undo.staff))
       ||(d.undo.bookings!==undefined&&!Array.isArray(d.undo.bookings))) throw new Error('復原資料格式不符');
@@ -970,8 +975,9 @@ function normalizeDB(d){
   return d;
 }
 function load(){
-  const raw=localStorage.getItem(KEY);
-  try{ DB=raw?normalizeDB(JSON.parse(raw)):defaultDB(); }
+  let raw=null;
+  LOAD_ERROR=''; PENDING_UNDO=null;
+  try{ raw=localStorage.getItem(KEY); DB=raw!==null?validateBackup(JSON.parse(raw)):defaultDB(); }
   catch(e){ DB=defaultDB(); LOAD_ERROR=e.message; }
   LAST_SAVED_RAW=raw;
 }
@@ -982,19 +988,28 @@ function fill(o,d){
   }
 }
 function restoreSaved(raw){
-  try{ DB=raw?normalizeDB(JSON.parse(raw)):defaultDB(); }
-  catch(e){ DB=defaultDB(); }
+  PENDING_UNDO=null;
+  try{ DB=raw!==null?validateBackup(JSON.parse(raw)):defaultDB(); }
+  catch(e){ DB=defaultDB(); LOAD_ERROR=e.message; }
 }
 function save(){
-  const current=localStorage.getItem(KEY);
+  if(LOAD_ERROR){ PENDING_UNDO=null; showLoadError(); alert('本機資料讀取異常，已停止寫入。請先還原有效的 JSON 備份。'); return false; }
+  let current;
+  try{ current=localStorage.getItem(KEY); }
+  catch(e){
+    restoreSaved(LAST_SAVED_RAW); LOAD_ERROR=e.message; showLoadError();
+    alert('無法讀取本機資料，本次操作已取消並停止寫入。請按「結束」回登入頁還原 JSON 備份。原因：'+e.message);
+    return false;
+  }
   if(current!==LAST_SAVED_RAW){
     restoreSaved(current); LAST_SAVED_RAW=current;
     alert('資料已在另一個分頁更新。為避免互相覆蓋，本次操作已取消，畫面將重新載入。');
     location.reload(); return false;
   }
   try{
+    sealUndo();
     const raw=JSON.stringify(DB);
-    localStorage.setItem(KEY,raw); LAST_SAVED_RAW=raw; return true;
+    localStorage.setItem(KEY,raw); LAST_SAVED_RAW=raw; PENDING_UNDO=null; return true;
   }catch(e){
     restoreSaved(current);
     alert('儲存失敗，本次操作已取消。瀏覽器空間可能已滿：'+e.message);
@@ -1154,7 +1169,7 @@ function resetIdle(){
 
 function gate(){
   const dlg=$('#dlg'); if(dlg.open) dlg.close();
-  SESSION=null; PENDING=null; clearTimeout(idleTimer);
+  SESSION=null; PENDING=null; clearTimeout(idleTimer); clearTimeout(bookingRefreshTimer);
   $('#viewGate').classList.remove('hide');
   ['#viewConfirm','#viewStu','#viewTea','#viewAdm','#topbar'].forEach(s=>$(s).classList.add('hide'));
   $$('#viewStu .bigbtn').forEach(b=>b.classList.remove('on'));
@@ -1198,6 +1213,7 @@ function gateTab(which){
   $('#formTea').classList.toggle('hide',which!=='tea');
   $('#formAdm').classList.toggle('hide',which!=='adm');
   msg($('#gateMsg'),'');
+  if(LOAD_ERROR) showLoadError();
 }
 $('#tabStu').onclick=()=>gateTab('stu');
 $('#tabTea').onclick=()=>gateTab('tea');
@@ -1205,6 +1221,7 @@ $('#lnkAdm').onclick=()=>{ gateTab('adm'); $('#admUser').focus(); };
 
 $('#formTea').onsubmit=e=>{
   e.preventDefault();
+  if(LOAD_ERROR){ showLoadError(); return; }
   const a=$('#teaAcct').value.trim().toLowerCase().split('@')[0];
   if(!a){ msg($('#gateMsg'),'請輸入帳號。','warn'); return; }
   if(!Object.keys(DB.staff).length){ msg($('#gateMsg'),'尚未匯入教職員名單，請洽衛生組。','err'); return; }
@@ -1214,6 +1231,7 @@ $('#formTea').onsubmit=e=>{
 
 $('#formStu').onsubmit=e=>{
   e.preventDefault();
+  if(LOAD_ERROR){ showLoadError(); return; }
   const sid=$('#stuSid').value.trim(), nm=$('#stuName').value.trim().replace(/\s/g,'');
   const p=person(sid);
   if(!p){ msg($('#gateMsg'),'查無此學號，請確認後再試，或洽衛生組。','err'); return; }
@@ -1229,6 +1247,7 @@ $('#btnConfirmNo').onclick=()=>gate();
 
 $('#formAdm').onsubmit=e=>{
   e.preventDefault();
+  if(LOAD_ERROR){ showLoadError(); return; }
   const u=$('#admUser').value.trim(), p=$('#admPass').value;
   if(DB.admins.length===0){
     if(u==='admin'&&p==='admin1234'){
@@ -1675,6 +1694,24 @@ function renderClosed(){
 }
 
 /* ---- 預約管理 ---- */
+let bookingRefreshTimer=null;
+function scheduleBookingRefresh(list){
+  clearTimeout(bookingRefreshTimer);
+  if(!SESSION||SESSION.type!=='admin') return;
+  const upcoming=list.filter(b=>b.type==='clean'&&!slotHasStarted(b.date));
+  if(!upcoming.length) return;
+  const date=upcoming.map(b=>b.date).sort()[0], at=parseYmd(date), min=slotStartMin();
+  at.setHours(Math.floor(min/60),min%60,0,0);
+  bookingRefreshTimer=setTimeout(()=>{
+    if(SESSION&&SESSION.type==='admin') renderQuery();
+  },Math.min(2147483647,Math.max(100,at.getTime()-Date.now()+100)));
+}
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&SESSION&&SESSION.type==='admin') renderQuery();
+});
+function sameMidday(r,date,slot){
+  return r.date===date&&(!r.slot||r.slot===(slot||DB.settings.slot));
+}
 function queryRows(){
   const d=$('#qDate').value, t=$('#qType').value, c=$('#qCls').value.trim();
   return DB.bookings.filter(attendedBooking)
@@ -1684,37 +1721,76 @@ function queryRows(){
       const A=person(a.sid)||{},B=person(b.sid)||{};
       return ((A.cls||'')+(A.seat||'')).localeCompare((B.cls||'')+(B.seat||''),'zh-Hant'); });
 }
+function bookingActions(b){
+  const cancel=b.status==='booked'?'<button class="btn sm flat" data-del="'+esc(b.id)+'">取消</button>':'';
+  if(b.type!=='clean') return b.status==='completed'?'<span class="tag wait">已完成</span>':cancel;
+  if(!slotHasStarted(b.date)) return cancel+' <button class="btn sm" disabled title="時段尚未開始">尚未開始</button>';
+  const completed=b.status==='completed', incomplete=!completed&&b.cleanResult==='incomplete';
+  return '<div class="row"><span class="tag '+(completed?'ok':'wait')+'">'
+    +(completed?'已完成打掃':incomplete?'未完成打掃':'待登記')+'</span>'
+    +'<button type="button" class="btn sm" data-clean-result="completed" data-booking-id="'+esc(b.id)+'"'
+    +(completed?' disabled':'')+'>完成打掃</button>'
+    +'<button type="button" class="btn sm flat" data-clean-result="incomplete" data-booking-id="'+esc(b.id)+'"'
+    +(incomplete?' disabled':'')+'>未完成打掃</button>'+cancel+'</div>';
+}
+/* 過去的補打掃預約可隨時補登或更正；以預約 ID 連結紀錄，避免重複加分或刪到其他場次。 */
+function setCleanBookingResult(id,result){
+  if(!SESSION||SESSION.type!=='admin') return;
+  if(!['completed','incomplete'].includes(result)) return;
+  const b=DB.bookings.find(x=>x.id===id);
+  if(!b||b.type!=='clean'||!attendedBooking(b)) return;
+  if(!slotHasStarted(b.date)){ alert('這個時段尚未開始，不能提前登記打掃結果。'); return; }
+  const c=DB.students[b.sid];
+  if(!c){ alert('這位同學不在補打掃名單中。'); return; }
+  const linked=recs(c).filter(r=>r.bid===b.id), done=result==='completed';
+  const manual=done&&!linked.length?slotRecs(c).filter(r=>r.src==='manual'&&!r.bid&&sameMidday(r,b.date,b.slot)):[];
+  if(manual.length>1){ alert('這一天已有多筆人工補登，請先在「學生資料」核對並刪除重複紀錄，再登記這筆預約。'); return; }
+  if(done&&b.status==='completed'&&linked.length===1) return;
+  if(!done&&b.cleanResult==='incomplete'&&b.status==='booked'&&!linked.length) return;
+  const p=person(b.sid)||{};
+  const label=(p.name||b.sid)+'（學號 '+b.sid+'）'+b.date.replace(/-/g,'/');
+  if(!confirm('確認將 '+label+' 的補打掃登記為「'+(done?'完成打掃':'未完成打掃')+'」？'
+    +(manual.length?'\n這一天已有一筆人工補登，將連結為同一次打掃，不會重複增加場次。':'')
+    +(!done&&linked.length?'\n將撤回這筆預約的完成場次，其他打掃紀錄會保留。':''))) return;
+  if(done){
+    const record=linked[0]||manual[0]||{src:'booking',date:b.date,mark:'',place:b.place};
+    const others=recs(c).filter(r=>r.bid!==b.id&&r!==manual[0]);
+    record.bid=b.id; record.slot=b.slot||DB.settings.slot;
+    c.records=others.concat([record]);
+    b.status='completed';
+    delete b.cleanResult;
+  }else{
+    c.records=recs(c).filter(r=>r.bid!==b.id);
+    /* 保留預約以供日後補報到；這不是取消預約。 */
+    b.status='booked'; b.cleanResult='incomplete';
+  }
+  if(!save()){ renderAdmin(); return; }
+  renderAdmin();
+}
 function renderQuery(){
   const list=queryRows(), box=$('#qList');
+  scheduleBookingRefresh(list);
   if(!list.length){ box.innerHTML='<p class="muted">沒有符合條件的預約。</p>'; return; }
-  box.innerHTML='<p class="muted">共 '+list.length+' 筆。時段開始後會自動釋放學生端的預約額度；補打掃仍需由衛生組記為完成。</p>'
+  box.innerHTML='<p class="muted">共 '+list.length+' 筆。補打掃時段開始後，可登記「完成打掃」或「未完成打掃」；過去日期也可補登、更正。愛校服務由核發老師確認。</p>'
     +'<div class="scroll"><table><thead><tr><th>日期</th><th>類別</th><th>地點</th><th>核發老師</th><th>班級</th><th>座號</th><th>姓名</th><th>學號</th><th>狀態／操作</th></tr></thead><tbody>'
     +list.map(b=>{const p=person(b.sid)||{};
       return '<tr><td class="num">'+b.date.slice(5).replace('-','/')+'（週'+wd(b.date)+'）</td>'
         +'<td><span class="tag '+TYPE[b.type].cls+'">'+TYPE[b.type].name+'</span></td>'
         +'<td>'+esc(b.place||PLACE_TBD)+'</td><td>'+esc(b.teacher||'—')+'</td>'
         +'<td>'+esc(p.cls||'')+'</td><td class="num">'+esc(p.seat||'')+'</td><td>'+esc(p.name||b.sid)+'</td><td class="num">'+esc(b.sid)+'</td>'
-        +'<td>'+(b.status==='completed'?'<span class="tag wait">已完成</span>'
-          :'<button class="btn sm flat" data-del="'+b.id+'">取消</button>'
-            +(b.type==='clean'?' <button class="btn sm" data-done="'+b.id+'"'+(!slotHasStarted(b.date)?' disabled title="時段尚未開始"':'')+'>'
-              +(!slotHasStarted(b.date)?'尚未開始':'記為完成')+'</button>':''))+'</td></tr>';}).join('')
+        +'<td>'+bookingActions(b)+'</td></tr>';}).join('')
     +'</tbody></table></div>';
   box.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{
     if(!confirm('取消這筆預約？')) return;
     const b=DB.bookings.find(y=>y.id===x.dataset.del); if(!b||b.status!=='booked') return;
     b.status='cancel'; if(!save()){ renderAdmin(); return; } renderAdmin();
   });
-  box.querySelectorAll('[data-done]').forEach(x=>x.onclick=()=>{
-    const b=DB.bookings.find(y=>y.id===x.dataset.done); if(!b) return;
-    if(b.status!=='booked') return;
-    if(!slotHasStarted(b.date)){ alert('這個時段尚未開始，不能提前記為完成。'); return; }
-    const c=DB.students[b.sid]; if(!c){ alert('這位同學不在補打掃名單中。'); return; }
-    if(recs(c).some(r=>r.bid===b.id)){ alert('這筆預約已經登記完成，不能重複計算。'); return; }
-    if(!confirm('確認 '+b.date.replace(/-/g,'/')+' 的補打掃已完成？')) return;
-    c.records=recs(c).concat([{src:'booking',bid:b.id,date:b.date,mark:'',place:b.place}]);
-    b.status='completed'; if(!save()){ renderAdmin(); return; } renderAdmin();
-  });
 }
+$('#qList').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-clean-result]');
+  if(!b||b.disabled) return;
+  setCleanBookingResult(b.dataset.bookingId,b.dataset.cleanResult);
+});
 $('#qDate').onchange=renderQuery; $('#qType').onchange=renderQuery; $('#qCls').oninput=renderQuery;
 $('#btnToday').onclick=()=>{ $('#qDate').value=today(); renderQuery(); };
 $('#btnClearQ').onclick=()=>{ $('#qDate').value=''; $('#qType').value=''; $('#qCls').value=''; renderQuery(); };
@@ -1763,7 +1839,21 @@ function guess(h){
   if(/備註/.test(s)) return 'note';
   return 'skip';
 }
-function headerRowOf(rows){
+function headerRowOf(rows,target){
+  if(isStaffImport(target)){
+    let best=-1,score=-1;
+    for(let i=0;i<Math.min(rows.length,50);i++){
+      const head=(rows[i]||[]).map(normHead);
+      const login=head.findIndex(h=>!h.includes('@')&&['email','acct'].includes(guessStaff(h)));
+      if(login<0) continue;
+      const explicit=head.some(h=>/姓名/.test(h));
+      const inferred=inferStaffNameCol({head,hr:i,sheet:{rows}},login);
+      const points=(explicit?100:inferred>=0?80:0)+head.filter(h=>guessStaff(h)!=='skip').length;
+      if(explicit||inferred>=0) return i;
+      if(points>score){ best=i; score=points; }
+    }
+    if(best>=0) return best;
+  }
   for(let i=0;i<Math.min(rows.length,20);i++){
     const r=(rows[i]||[]).map(normHead);
     if(!r.some(c=>/姓名/.test(c))) continue;
@@ -1774,9 +1864,13 @@ function headerRowOf(rows){
 function dataRowCount(sh){ return sh.rows.filter(r=>r.some(c=>c!==null&&c!=='')).length; }
 /* 只有看起來像名單的分頁才預設勾選 */
 function looksLikeRoster(sh,target){
-  const hr=headerRowOf(sh.rows), r=(sh.rows[hr]||[]).map(c=>String(c==null?'':c));
+  const hr=headerRowOf(sh.rows,target), r=(sh.rows[hr]||[]).map(normHead);
+  if(isStaffImport(target)){
+    const info={head:r,hr,sheet:sh};
+    return r.some(h=>['email','acct'].includes(guessStaff(h)))
+      &&(r.some(h=>/姓名/.test(h))||inferStaffNameCol(info)>=0);
+  }
   if(!r.some(c=>/姓名/.test(c))) return false;
-  if(isStaffImport(target)) return r.some(c=>/信箱|email|mail|帳號/i.test(c));
   if(!r.some(c=>/學號/.test(c))) return false;
   return sh.rows.slice(hr+1).some(row=>row.some(c=>/^\d{4,}$/.test(String(c==null?'':c).trim())));
 }
@@ -1809,7 +1903,7 @@ function sheetChanged(){
   const sel=picked(), multi=sel.length>1;
   const hr=$('#impHeaderRow');
   hr.disabled=multi;
-  hr.value=IMP.sheets[primary()]?headerRowOf(IMP.sheets[primary()].rows)+1:1;
+  hr.value=IMP.sheets[primary()]?headerRowOf(IMP.sheets[primary()].rows,$('#impTarget').value)+1:1;
   $('#impHeadNote').textContent = multi
     ? '選了多個工作表，各分頁的標題列會自動偵測，欄位對應依標題名稱套用。'
     : '';
@@ -1829,7 +1923,7 @@ function renderSheetPicks(){
 }
 function headInfo(idx,useManual){
   const sh=IMP.sheets[idx];
-  let hr=headerRowOf(sh.rows);
+  let hr=headerRowOf(sh.rows,$('#impTarget').value);
   if(useManual){ const v=parseInt($('#impHeaderRow').value,10); if(v>0) hr=v-1; }
   const head=sh.rows[hr]||[];
   let w=head.length;
@@ -1846,6 +1940,8 @@ function staffNameLike(v){
 /* 沒有「姓名」標題時，從個人 Email 同列附近的中文姓名內容推斷。 */
 function inferStaffNameCol(info,emailCol){
   const heads=info.head;
+  const named=heads.findIndex(h=>/姓名/.test(normHead(h)));
+  if(named>=0) return named;
   if(emailCol===undefined){
     emailCol=heads.findIndex(h=>/個人/.test(normHead(h))&&guessStaff(h)==='email');
     if(emailCol<0) emailCol=heads.findIndex(h=>guessStaff(h)==='email');
@@ -1872,6 +1968,7 @@ function inferStaffNameCol(info,emailCol){
 }
 function buildMap(){
   IMP_READY=null;
+  $('#impPreview').innerHTML='';
   if(!IMP||!picked().length){ $('#impMap').innerHTML='<p class="muted">請至少勾選一個工作表。</p>'; return; }
   const target=$('#impTarget').value;
   const info=headInfo(primary(),picked().length===1), head=info.head;
@@ -1892,6 +1989,14 @@ function buildMap(){
   $$('#impMap select').forEach(x=>{ x.value=defaults[+x.dataset.col]||'skip'; });
   $('#impPreview').innerHTML='';
 }
+function importSignature(){
+  return JSON.stringify({target:$('#impTarget').value,sheets:picked(),header:$('#impHeaderRow').value,
+    columns:$$('#impMap select').map(x=>[x.dataset.col,x.dataset.field,x.value])});
+}
+$('#impMap').addEventListener('change',()=>{
+  IMP_READY=null;
+  msg($('#impPreview'),'匯入欄位已變更，請重新按「核對並預覽」。','info');
+});
 const seatNorm=v=>{const s=String(v==null?'':v).trim(); if(!s) return ''; const d=s.replace(/\D/g,''); return d?pad2(String(parseInt(d,10))):s;};
 function rowsFromSheet(idx,map,sheetName){
   const info=headInfo(idx,picked().length===1&&idx===primary());
@@ -2001,8 +2106,15 @@ function readRows(target){
     if(map.sid===undefined) throw new Error('工作表「'+info.sheet.name+'」找不到「學號」欄位，請確認標題列');
     const parsed=rowsFromSheet(idx,map,info.sheet.name); invalid+=parsed.invalid||0;
     parsed.forEach(r=>{
-      if(seen[r.sid]){ dup++; return; }
-      seen[r.sid]=1; all.push(r);
+      const existing=seen[r.sid];
+      if(existing){
+        dup++;
+        existing.rec=mergeImportRecords({records:existing.rec},r.rec).records;
+        ['name','email','cls','seat','classNo','oldCls','oldSeat','note'].forEach(k=>{ if(!existing[k]&&r[k]) existing[k]=r[k]; });
+        if(r.required!=null) existing.required=Math.max(existing.required||0,r.required);
+        return;
+      }
+      seen[r.sid]=r; all.push(r);
     });
   });
   all.dup=dup; all.sheets=sel.length; all.invalid=invalid;
@@ -2016,7 +2128,7 @@ $('#btnPreview').onclick=()=>{
     const rows=readRows(target);
     if(!rows.length){ msg(P,'沒有讀到有效資料，請確認勾選的工作表與標題列。','err'); return; }
     if(rows.staff){
-      IMP_READY={rows,target:'staff'};
+      IMP_READY={rows,target:'staff',signature:importSignature()};
       const exist=rows.filter(r=>DB.staff[r.acct]), fresh=rows.filter(r=>!DB.staff[r.acct]);
       let hs='<div class="notice info">讀到 <b>'+rows.length+'</b> 位教職員：既有 <b>'+exist.length+'</b> 位（保留原資料）、新增 <b>'+fresh.length+'</b> 位。'
         +(rows.dup?'另有 '+rows.dup+' 筆帳號重複已略過。':'')+'</div>'
@@ -2026,7 +2138,7 @@ $('#btnPreview').onclick=()=>{
       P.innerHTML=hs;
       return;
     }
-    IMP_READY={rows,target};
+    IMP_READY={rows,target,signature:importSignature()};
     const store=target==='roster'?DB.roster:DB.students;
     const exist=rows.filter(r=>store[r.sid]), fresh=rows.filter(r=>!store[r.sid]);
     const changed=exist.filter(r=>r.cls&&store[r.sid].cls&&store[r.sid].cls!==r.cls);
@@ -2039,7 +2151,7 @@ $('#btnPreview').onclick=()=>{
     let h='<div class="notice info">讀到 <b>'+rows.length+'</b> 筆'
       +(rows.sheets>1?'（'+Object.keys(bySheet).map(k=>esc(k)+' '+bySheet[k]+' 筆').join('、')+'）':'')
       +'：對應到既有名單 <b>'+exist.length+'</b> 筆、新增 <b>'+fresh.length+'</b> 筆。'
-      +(rows.dup?'另有 '+rows.dup+' 筆學號重複已略過。':'')
+      +(rows.dup?'另有 '+rows.dup+' 筆相同學號已合併，新完成日期會保留，同一日期不會因跨列或跨分頁重複計算。':'')
       +(target==='clean'?'將新增 <b>'+newRec+'</b> 筆尚未存在的完成日期；舊日期與既有學生資料都會保留。':'')
       +(rows.invalid?'有 <b>'+rows.invalid+'</b> 個無法辨識為日期的內容會略過，不會算成完成。':'')
       +(changed.length?(target==='classonly'?'其中 <b>'+changed.length+'</b> 人班級將更新。':'偵測到 <b>'+changed.length+'</b> 人班級不同，但此匯入模式不會覆蓋既有班級。'):'')
@@ -2064,33 +2176,66 @@ $('#admImport').addEventListener('click',e=>{
   const b=e.target.closest('[data-apply-import]');
   if(!b) return;
   e.preventDefault();
-  if(!IMP_READY||!IMP_READY.rows||!IMP_READY.rows.length){
+  if(!IMP_READY||!IMP_READY.rows||!IMP_READY.rows.length||IMP_READY.signature!==importSignature()){
+    IMP_READY=null;
     msg($('#impPreview'),'預覽資料已失效，請重新按「核對並預覽」。','err'); return;
   }
   applyImport(IMP_READY.rows,IMP_READY.target);
 });
-function snapshot(label,withBookings){
-  DB.undo={ts:new Date().toISOString(),label,
-    students:clone(DB.students),roster:clone(DB.roster),staff:clone(DB.staff)};
-  if(withBookings) DB.undo.bookings=clone(DB.bookings);
+const sameData=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const ownValue=(obj,key)=>Object.prototype.hasOwnProperty.call(obj,key)?obj[key]:null;
+function validUndo(u){
+  return plain(u)&&u.format===2&&typeof u.ts==='string'&&typeof u.label==='string'&&Array.isArray(u.changes)
+    &&u.changes.every(x=>plain(x)&&(x.store==='bookings'
+      ?Array.isArray(x.before)&&Array.isArray(x.after)
+      :['students','roster','staff'].includes(x.store)&&typeof x.key==='string'
+        &&!['__proto__','constructor','prototype'].includes(x.key)
+        &&(x.before===null||plain(x.before))&&(x.after===null||plain(x.after))));
 }
-function undoAvailable(){
-  return !!(DB.undo&&DB.undo.ts&&plain(DB.undo.students)&&plain(DB.undo.roster)
-    &&(DB.undo.staff===undefined||plain(DB.undo.staff))
-    &&(DB.undo.bookings===undefined||Array.isArray(DB.undo.bookings)));
+function snapshot(label){
+  PENDING_UNDO={ts:new Date().toISOString(),label,
+    students:clone(DB.students),roster:clone(DB.roster),staff:clone(DB.staff),bookings:clone(DB.bookings)};
 }
+/* 只保存這次操作改變的項目；復原時不會退回整份名單。 */
+function sealUndo(){
+  if(!PENDING_UNDO) return;
+  const before=PENDING_UNDO, changes=[];
+  ['students','roster','staff'].forEach(store=>{
+    const keys=new Set(Object.keys(before[store]).concat(Object.keys(DB[store])));
+    keys.forEach(key=>{
+      const old=ownValue(before[store],key), value=ownValue(DB[store],key);
+      if(!sameData(old,value)) changes.push({store,key,before:old,after:clone(value)});
+    });
+  });
+  if(!sameData(before.bookings,DB.bookings)) changes.push({store:'bookings',before:before.bookings,after:clone(DB.bookings)});
+  if(changes.length) DB.undo={format:2,ts:before.ts,label:before.label,changes};
+}
+function undoAvailable(){ return validUndo(DB.undo)&&DB.undo.changes.length>0; }
 function doUndo(){
   if(!undoAvailable()){
     alert('目前沒有可復原的名單資料。');
     renderUndoBox(); return;
   }
-  const undo=clone(DB.undo), restoresBookings=Array.isArray(undo.bookings);
-  if(!confirm('要復原到「'+undo.label+'」之前的狀態嗎？\n'
-    +(restoresBookings?'相關預約也會一併復原。':'預約紀錄不受影響。'))) return;
-  DB.students=undo.students; DB.roster=undo.roster;
-  if(undo.staff) DB.staff=undo.staff;
-  if(restoresBookings) DB.bookings=undo.bookings;
-  DB.undo=null;
+  const undo=clone(DB.undo), restoresBookings=undo.changes.some(x=>x.store==='bookings');
+  const changed=undo.changes.some(x=>!sameData(x.store==='bookings'?DB.bookings:ownValue(DB[x.store],x.key),x.after));
+  if(changed){
+    alert('這次異動涉及的資料後來已被修改或新增完成紀錄，無法直接復原。現有資料均已保留；請在名單中單筆調整。'); return;
+  }
+  const candidate=clone(DB);
+  undo.changes.forEach(x=>{
+    if(x.store==='bookings') candidate.bookings=x.before;
+    else if(x.before===null) delete candidate[x.store][x.key];
+    else candidate[x.store][x.key]=x.before;
+  });
+  const removesBookedStudent=undo.changes.some(x=>x.before===null&&['students','roster'].includes(x.store)
+    &&candidate.bookings.some(b=>b.sid===x.key&&attendedBooking(b)
+      &&(x.store==='students'&&b.type==='clean'||!candidate.students[x.key]&&!candidate.roster[x.key])));
+  if(removesBookedStudent){ alert('這次新增的學生已有預約，不能直接移除名單。現有資料均已保留；請先在預約管理核對。'); return; }
+  if(!confirm('要撤回「'+undo.label+'」這次異動嗎？\n'
+    +(restoresBookings?'這次一併變更的預約也會復原。':'其他名單與後來的預約、完成紀錄會保留。'))) return;
+  candidate.undo=null;
+  try{ DB=normalizeDB(candidate); }
+  catch(e){ alert('無法復原，現有資料未變更：'+e.message); return; }
   if(!save()){ renderAdmin(); return; }
   renderAdmin();
   const done='已復原名單'+(restoresBookings?'與相關預約':'')+'。';
@@ -2367,8 +2512,18 @@ function editStu(sid){
   };
   $('#eAdd').onclick=()=>{
     const date=$('#eDate').value; if(!date){alert('請選擇補登日期。');return;}
+    const kind=$('#eKind').value, midday=kind==='manual';
+    const matches=midday?DB.bookings.filter(b=>b.sid===sid&&b.date===date&&b.type==='clean'&&attendedBooking(b)):[];
+    if(midday&&!slotHasStarted(date)){ alert('這個中午時段尚未開始，不能提前補登完成。'); return; }
+    if(midday&&slotRecs(s).some(r=>sameMidday(r,date,DB.settings.slot))){
+      alert('這一天的中午補掃已有完成紀錄，沒有重複增加場次。若有對應預約，可到「預約管理」登記完成，系統會連結原紀錄。'); return;
+    }
+    if(matches.length>1){ alert('這一天有多筆補打掃預約，請到「預約管理」核對後再登記。'); return; }
     snapshot('補登 '+(s.name||sid)+' 完成紀錄');
-    s.records=recs(s).concat([{src:$('#eKind').value,date,mark:'',place:$('#ePlace').value.trim()}]);
+    const record={src:kind,date,mark:'',place:$('#ePlace').value.trim()};
+    if(midday) record.slot=DB.settings.slot;
+    if(matches.length){ record.bid=matches[0].id; matches[0].status='completed'; delete matches[0].cleanResult; }
+    s.records=recs(s).concat([record]);
     if(!save()){editStu(sid);renderStuTable();return;} editStu(sid);renderStuTable();
   };
   $('#dlgBody').querySelectorAll('[data-dr]').forEach(b=>b.onclick=()=>{
@@ -2377,7 +2532,7 @@ function editStu(sid){
     const booking=record&&record.bid?DB.bookings.find(x=>x.id===record.bid&&x.status==='completed'):null;
     snapshot('刪除 '+(s.name||sid)+' 完成紀錄',!!booking);
     s.records.splice(i,1);
-    if(booking) booking.status='booked';
+    if(booking){ booking.status='booked'; booking.cleanResult='incomplete'; }
     if(!save()){editStu(sid);renderStuTable();return;} editStu(sid); renderStuTable();
   });
 }
@@ -2441,16 +2596,18 @@ function dl(blob,name){
 }
 function renderUndoBox(){
   const box=$('#undoBox');
-  if(!undoAvailable()){ box.innerHTML='<p class="muted" style="margin:0">目前沒有可復原的動作。</p>'; return; }
+  if(!undoAvailable()){
+    box.innerHTML='<p class="muted" style="margin:0">'+(DB.undo?'舊版復原紀錄無法確認後續異動，已停用以保留現有資料；新操作可正常建立復原紀錄。':'目前沒有可復原的動作。')+'</p>'; return;
+  }
   const t=new Date(DB.undo.ts);
   box.innerHTML='<p class="muted" style="margin:0 0 10px">最近一次名單異動：<b>'+esc(DB.undo.label)+'</b>　'
-    +t.getMonth()+1+'/'+t.getDate()+' '+pad2(t.getHours())+':'+pad2(t.getMinutes())+'</p>'
-    +(Array.isArray(DB.undo.bookings)?'<p class="muted">這次復原會連同相關預約一起還原。</p>':'')
+    +(t.getMonth()+1)+'/'+t.getDate()+' '+pad2(t.getHours())+':'+pad2(t.getMinutes())+'</p>'
+    +(DB.undo.changes.some(x=>x.store==='bookings')?'<p class="muted">這次復原會連同相關預約一起還原；如後續已有異動，會保留現況並提示。</p>':'')
     +'<button type="button" class="btn warn" data-undo-list>復原名單</button>';
 }
 $('#btnBackupJson').onclick=()=>{
   DB.lastBackup=new Date().toISOString(); if(!save()) return;
-  dl(new Blob([JSON.stringify(DB)],{type:'application/json'}),'補掃愛校備份_'+today()+'.json');
+  dl(new Blob([JSON.stringify({...DB,backupFormat:'hygieneBooking',backupVersion:1})],{type:'application/json'}),'補掃愛校備份_'+today()+'.json');
   msg($('#dataMsg'),'JSON 備份已下載，請存到雲端硬碟或隨身碟。','info'); backupHint();
 };
 async function exportBackupXlsx(){
@@ -2488,7 +2645,7 @@ async function exportBackupXlsx(){
       t.required||0,summerRecs(t).length,need,doneSlots(t),remainSlots(t)];
     for(let i=0;i<sumCols;i++) row.push(sm[i]||'');
     for(let i=0;i<slotCols;i++){
-      if(i<need) row.push({v:sl[i]||'',s:PINK});
+      if(i<need||i<sl.length) row.push({v:sl[i]||'',s:PINK});
       else row.push({v:'',s:GREY});
     }
     prog.push(row);
@@ -2507,7 +2664,7 @@ async function exportBackupXlsx(){
     const row=[p.cls||'',t.classNo||'',p.seat||'',p.name||'',t.required||0];
     for(let i=0;i<sumCols;i++) row.push(sm[i]||'');
     row.push(summerRecs(t).length,need);
-    for(let i=0;i<slotCols;i++) row.push(i<need?{v:sl[i]||'',s:PINK}:{v:'',s:GREY});
+    for(let i=0;i<slotCols;i++) row.push(i<need||i<sl.length?{v:sl[i]||'',s:PINK}:{v:'',s:GREY});
     row.push(remainSlots(t),t.note||'','',(t.oldCls||'')+((t.oldSeat)?' '+t.oldSeat:''),t.sid);
     chk.push(row);
   });
@@ -2520,7 +2677,7 @@ async function exportBackupXlsx(){
       .sort((x,y)=>{const A=person(x.sid)||{},B=person(y.sid)||{};
         return ((A.cls||'')+(A.seat||'')).localeCompare((B.cls||'')+(B.seat||''),'zh-Hant');})
       .forEach(b=>{const p=person(b.sid)||{};
-        day.push([d,'週'+wd(d),b.slot,TYPE[b.type].name,b.place||PLACE_TBD,b.teacher||'',p.cls||'',p.seat||'',p.name||'',b.status==='completed'?'已完成':'已預約','']);});
+        day.push([d,'週'+wd(d),b.slot,TYPE[b.type].name,b.place||PLACE_TBD,b.teacher||'',p.cls||'',p.seat||'',p.name||'',b.status==='completed'?'已完成':b.type==='clean'&&b.cleanResult==='incomplete'?'未完成打掃':'已預約','']);});
     day.push([]);
   });
 
@@ -2551,20 +2708,54 @@ async function exportBackupXlsx(){
   return x;
 }
 $('#btnBackupXlsx').onclick=exportBackupXlsx;
-$('#fileRestore').onchange=e=>{
-  const f=e.target.files[0]; if(!f) return;
+/* 相容既有完整 JSON 備份，同時拒絕空物件、其他程式的 JSON 與不支援的版本。 */
+function validateBackup(d){
+  if(!plain(d)||!['students','bookings','admins','settings'].every(k=>Object.prototype.hasOwnProperty.call(d,k)))
+    throw new Error('這不是本系統的完整 JSON 備份（缺少學生、預約、管理員或設定資料）');
+  if(d.backupFormat!==undefined&&(d.backupFormat!=='hygieneBooking'||d.backupVersion!==1))
+    throw new Error('備份來源或版本不支援');
+  return normalizeDB(d);
+}
+function showLoadError(){
+  if(!LOAD_ERROR) return;
+  msg($('#gateMsg'),'本機資料無法讀取，已停止寫入，原資料不會被預設空白資料覆蓋。請還原本系統的 JSON 備份。原因：'+esc(LOAD_ERROR)
+    +'<div class="row" style="margin-top:12px">'
+    +(LAST_SAVED_RAW!==null?'<button type="button" class="btn sm flat" id="btnRawRecovery">下載原始資料</button>':'')
+    +'<label class="btn sm">還原 JSON 備份<input id="fileRecovery" type="file" accept=".json,application/json" hidden></label></div>'
+    +'<div id="recoveryMsg"></div>','err');
+  const rawButton=$('#btnRawRecovery');
+  if(rawButton) rawButton.onclick=()=>dl(new Blob([LAST_SAVED_RAW],{type:'application/json'}),'本機原始資料_'+today()+'.json');
+  $('#fileRecovery').onchange=e=>{ const f=e.target.files[0]; e.target.value=''; if(f) restoreBackupFile(f,$('#recoveryMsg'),true); };
+}
+function restoreBackupFile(f,M,recovery){
+  const expected=LAST_SAVED_RAW;
   const fr=new FileReader();
   fr.onload=()=>{
     try{
-      const d=JSON.parse(fr.result);
-      const restored=normalizeDB(d);
-      if(!confirm('還原會覆蓋目前所有資料，確定嗎？')) return;
-      DB=restored;
-      if(!save()){ renderAdmin(); return; }
-      msg($('#dataMsg'),'已還原備份。','info'); renderAdmin();
-    }catch(err){ msg($('#dataMsg'),'還原失敗：'+esc(err.message),'err'); }
+      const restored=validateBackup(JSON.parse(fr.result));
+      const counts='補打掃 '+Object.keys(restored.students).length+' 人、全校學生 '+Object.keys(restored.roster).length
+        +' 人、教職員 '+Object.keys(restored.staff).length+' 人、預約 '+restored.bookings.length+' 筆';
+      if(!confirm('備份內容：'+counts+'。\n還原會覆蓋目前所有資料（包含管理員帳號與密碼），確定嗎？')) return;
+      if(localStorage.getItem(KEY)!==expected||LAST_SAVED_RAW!==expected){
+        msg(M,'本機資料已在另一個分頁更新，已停止還原。請重新整理後再操作。','err'); return;
+      }
+      /* 先成功寫入完整備份，才切換記憶體資料與解除讀取異常鎖定。 */
+      const raw=JSON.stringify(restored);
+      localStorage.setItem(KEY,raw);
+      DB=restored; LAST_SAVED_RAW=raw; LOAD_ERROR=''; PENDING_UNDO=null;
+    }catch(err){ msg(M,'還原失敗，現有資料未變更：'+esc(err.message),'err'); return; }
+    if(recovery||!SESSION||!DB.admins.some(a=>a.user===SESSION.user)){
+      gate(); msg($('#gateMsg'),'已還原備份，請使用備份中的管理員帳號與密碼登入。','info');
+    }else{
+      renderAdmin(); msg($('#dataMsg'),'已還原備份。','info');
+    }
   };
-  fr.readAsText(f); e.target.value='';
+  fr.onerror=()=>msg(M,'檔案讀取失敗，現有資料未變更。','err');
+  fr.readAsText(f);
+}
+$('#fileRestore').onchange=e=>{
+  const f=e.target.files[0]; e.target.value='';
+  if(f) restoreBackupFile(f,$('#dataMsg'),false);
 };
 $('#btnSaveSet').onclick=()=>{
   const sl=$('#setSlot').value.trim(), tm=/(\d{1,2})\s*:\s*(\d{2})/.exec(sl);
@@ -2593,7 +2784,7 @@ load();
 $('#dDate').value=today(); $('#bFrom').value=today(); $('#cFrom').value=today();
 const nx=new Date(); nx.setDate(nx.getDate()+14); $('#bTo').value=ymd(nx);
 gate();
-if(LOAD_ERROR) msg($('#gateMsg'),'偵測到本機資料格式異常，系統尚未覆蓋原資料。請以管理員登入後還原最近的 JSON 備份。原因：'+esc(LOAD_ERROR),'err');
+if(LOAD_ERROR) showLoadError();
 })();
 </script>
 </body>
